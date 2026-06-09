@@ -135,7 +135,38 @@ export function AttendanceRecords() {
         ) : filtered.length === 0 ? (
           <EmptyState title="Yozuv yo'q" description="Bu kun va filtrlar bo'yicha davomat yozuvi topilmadi." />
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* ===== MOBIL: kartalar (<640px) ===== */}
+          <div className="sm:hidden divide-y divide-slate-200/60">
+            {filtered.map((r) => (
+              <button
+                key={r.id}
+                onClick={() => navigate(`/leader/employees/${r.employee_id}`)}
+                className="w-full text-left p-3.5 active:bg-slate-50 transition-colors flex items-center gap-3"
+              >
+                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-xs font-semibold shrink-0"
+                  style={{ background: `hsl(${hue(r.employee_id)}, 65%, 55%)` }}>
+                  {r.employee.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold text-slate-800 truncate">{r.employee}</div>
+                  <div className="flex items-center gap-2 mt-1 text-xs text-slate-500">
+                    <span>↓ {r.checkIn || "—"}</span>
+                    <span className="text-slate-300">·</span>
+                    <span>↑ {r.checkOut || "—"}</span>
+                    {r.position && <span className="text-slate-400 truncate">· {r.position}</span>}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <StatusBadge status={r.status as any} />
+                  <ChevronRight size={16} className="text-slate-300" />
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {/* ===== DESKTOP: jadval (sm+) ===== */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full">
               <thead className="bg-slate-50">
                 <tr>
@@ -177,6 +208,7 @@ export function AttendanceRecords() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
     </div>

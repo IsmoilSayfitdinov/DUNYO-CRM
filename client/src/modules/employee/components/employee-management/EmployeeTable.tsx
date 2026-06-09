@@ -18,9 +18,65 @@ export function EmployeeTable({
   onToggleActive,
   onDelete,
 }: any) {
+  const colorOf = (i: number) => `hsl(${(((page - 1) * pageSize + i) * 53) % 360}, 65%, 55%)`;
+
   return (
     <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-      <div className="overflow-x-auto">
+      {/* ===== MOBIL: kartalar (<640px) ===== */}
+      <div className="sm:hidden divide-y divide-slate-200/60">
+        {isLoading ? (
+          <EmptyState variant="loading" title="Yuklanmoqda…" description="Xodimlar serverdan olinmoqda" />
+        ) : isError ? (
+          <EmptyState variant="error" title="Yuklab bo'lmadi" description="Server bilan bog'lanishda xatolik. Backend ishlayaptimi?" />
+        ) : paginated.length === 0 ? (
+          <EmptyState icon={Users} title="Xodimlar topilmadi" description="Qidiruv yoki filtrni o'zgartiring, yoki yangi xodim qo'shing."
+            action={<button onClick={onAdd} className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20"><Plus size={16} /> Xodim qo'shish</button>} />
+        ) : (
+          paginated.map((emp: any, i: number) => (
+            <div key={emp.id} className="p-3.5 active:bg-slate-50 transition-colors">
+              <div className="flex items-start gap-3">
+                <div className="w-11 h-11 rounded-full flex items-center justify-center text-white text-sm font-semibold shrink-0"
+                  style={{ background: colorOf(i) }}>
+                  {emp.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="text-sm font-semibold text-slate-800 truncate">{emp.name}</div>
+                      <div className="text-xs text-slate-400 truncate">@{emp.username}</div>
+                    </div>
+                    <RowMenu
+                      isActive={emp.isActive}
+                      onView={() => onView(emp)}
+                      onEdit={() => onEdit(emp)}
+                      onToggleActive={() => onToggleActive(emp)}
+                      onDelete={() => onDelete(emp)}
+                    />
+                  </div>
+                  <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs">
+                    {emp.position && <span className="text-slate-600">{emp.position}</span>}
+                    <span className="text-slate-800 font-medium">{emp.hourlyRate.toLocaleString()} <span className="text-slate-400 font-normal">so'm/soat</span></span>
+                    {emp.branch && emp.branch !== "—" && (
+                      <span className="text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md">{emp.branch}</span>
+                    )}
+                  </div>
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className={`text-[10px] px-2.5 py-1 rounded-lg font-bold uppercase tracking-wider ${emp.isActive ? "bg-success/10 text-success border border-success/20" : "bg-slate-100 text-slate-500 border border-slate-200"}`}>
+                      {emp.isActive ? "Faol" : "Nofaol"}
+                    </span>
+                    {typeof emp.score === "number" && emp.score > 0 && (
+                      <span className="text-[11px] text-slate-400">Ball: <span className="font-semibold text-slate-600">{emp.score}</span></span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* ===== DESKTOP: jadval (sm+) ===== */}
+      <div className="hidden sm:block overflow-x-auto">
         <table className="w-full">
           <thead className="bg-slate-50">
             <tr>

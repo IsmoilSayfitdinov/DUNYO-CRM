@@ -38,7 +38,63 @@ export function PayrollTable({ rows, isLoading, periodLabel, onAdjust, onMarkPai
       ) : rows.length === 0 ? (
         <EmptyState title="Ish haqi yo'q" description="Bu oy uchun hisoblangan ish haqi mavjud emas. Avval xodimlarga oylik hisoblang." />
       ) : (
-        <div className="overflow-x-auto">
+        <>
+        {/* ===== MOBIL: kartalar (<640px) ===== */}
+        <div className="sm:hidden divide-y divide-slate-200/60">
+          {rows.map((r) => (
+            <div key={r.salaryId} className="p-3.5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-xs font-semibold shrink-0"
+                  style={{ background: `hsl(${hue(r.employeeId)}, 65%, 55%)` }}>
+                  {r.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold text-slate-800 truncate">{r.name}</div>
+                  {r.position && <div className="text-xs text-slate-400 truncate">{r.position}</div>}
+                </div>
+                <StatusBadge status={(r.isPaid ? "Paid" : "Unpaid") as any} />
+              </div>
+
+              <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+                <div className="bg-slate-50 rounded-lg py-2">
+                  <div className="text-[10px] text-slate-400 uppercase tracking-wide">Asosiy</div>
+                  <div className="text-sm font-medium text-slate-800 mt-0.5">{M(r.base)}M</div>
+                </div>
+                <div className="bg-slate-50 rounded-lg py-2">
+                  <div className="text-[10px] text-slate-400 uppercase tracking-wide">Premiya</div>
+                  <div className="text-sm font-medium text-success mt-0.5">{r.bonus > 0 ? `+${M(r.bonus)}M` : "—"}</div>
+                </div>
+                <div className="bg-primary/5 rounded-lg py-2">
+                  <div className="text-[10px] text-slate-400 uppercase tracking-wide">Jami</div>
+                  <div className="text-sm font-bold text-slate-900 mt-0.5">{M(r.final)}M</div>
+                </div>
+              </div>
+
+              <div className="mt-3 flex items-center gap-2">
+                <button
+                  onClick={() => onAdjust(r.salaryId, r.name)}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 min-h-[40px] text-xs font-semibold text-success border border-success/20 bg-success/5 rounded-lg hover:bg-success/10 transition-colors"
+                >
+                  <Gift size={15} /> Premiya
+                </button>
+                {r.isPaid ? (
+                  <span className="flex-1 inline-flex items-center justify-center text-xs bg-slate-100 text-slate-400 min-h-[40px] rounded-lg font-medium">To'langan</span>
+                ) : (
+                  <button
+                    onClick={() => onMarkPaid(r.employeeId, r.salaryId)}
+                    disabled={isPaying}
+                    className="flex-1 inline-flex items-center justify-center text-xs bg-success text-success-foreground min-h-[40px] rounded-lg hover:opacity-90 transition-colors font-semibold shadow-sm disabled:opacity-60"
+                  >
+                    To'lash
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ===== DESKTOP: jadval (sm+) ===== */}
+        <div className="hidden sm:block overflow-x-auto">
           <table className="w-full">
             <thead className="bg-slate-50">
               <tr>
@@ -91,6 +147,7 @@ export function PayrollTable({ rows, isLoading, periodLabel, onAdjust, onMarkPai
             </tbody>
           </table>
         </div>
+        </>
       )}
     </div>
   );

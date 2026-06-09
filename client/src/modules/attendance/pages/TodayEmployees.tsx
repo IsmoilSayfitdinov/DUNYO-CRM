@@ -130,7 +130,28 @@ export function TodayEmployees() {
         <div className="bg-white rounded-xl border border-slate-200"><EmptyState title="Xodim topilmadi" description="Filtrga mos xodim yo'q." /></div>
       ) : view === "list" ? (
         <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-          <div className="overflow-x-auto">
+          {/* ===== MOBIL: kartalar (<640px) ===== */}
+          <div className="sm:hidden divide-y divide-slate-200/60">
+            {filtered.map((emp) => (
+              <div key={emp.id} className="p-3.5 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-xs font-semibold shrink-0"
+                  style={{ background: `hsl(${hue(emp.id)}, 65%, 55%)` }}>
+                  {emp.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold text-slate-800 truncate">{emp.name}</div>
+                  <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-400">
+                    {emp.position && <span className="truncate">{emp.position}</span>}
+                    {emp.checkIn && <span className="text-slate-500">· ↓ {emp.checkIn}</span>}
+                  </div>
+                </div>
+                <StatusBadge status={emp.status as any} />
+              </div>
+            ))}
+          </div>
+
+          {/* ===== DESKTOP: jadval (sm+) ===== */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full">
               <thead className="bg-slate-50">
                 <tr>

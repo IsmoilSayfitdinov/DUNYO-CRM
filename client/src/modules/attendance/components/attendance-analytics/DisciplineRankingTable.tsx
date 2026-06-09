@@ -19,7 +19,37 @@ export function DisciplineRankingTable({
         <h3 className="font-semibold text-slate-900">Xodimlarning intizom reytingi</h3>
         <span className="text-xs text-slate-400">{totalCount} ta xodim</span>
       </div>
-      <div className="overflow-x-auto">
+      {/* ===== MOBIL: kartalar (<640px) ===== */}
+      <div className="sm:hidden divide-y divide-slate-200/60">
+        {paginated.length > 0 ? (
+          paginated.map((emp: any, i: number) => (
+            <div key={emp.employee_id} className="p-3.5 flex items-center gap-3">
+              <span className="text-sm font-bold text-slate-300 w-6 shrink-0">#{(page - 1) * pageSize + i + 1}</span>
+              <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-xs font-semibold shrink-0"
+                style={{ background: `hsl(${hue(emp.employee_id)}, 65%, 55%)` }}>
+                {emp.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-semibold text-slate-800 truncate">{emp.name}</div>
+                <div className="flex items-center gap-2 mt-1">
+                  <div className="flex-1 max-w-[100px] h-1.5 bg-slate-100 rounded-full">
+                    <div className="h-full rounded-full bg-success" style={{ width: `${emp.attendancePct}%` }} />
+                  </div>
+                  <span className="text-xs font-medium text-slate-500">{emp.attendancePct}%</span>
+                </div>
+              </div>
+              <span className={`text-base font-bold shrink-0 ${emp.score >= 90 ? "text-success" : emp.score >= 80 ? "text-warning" : "text-destructive"}`}>
+                {emp.score}
+              </span>
+            </div>
+          ))
+        ) : (
+          <EmptyState size="sm" icon={ClipboardList} title="Yozuvlar topilmadi" description="Filtrga mos keladigan xodimlarning intizom reytingi mavjud emas." />
+        )}
+      </div>
+
+      {/* ===== DESKTOP: jadval (sm+) ===== */}
+      <div className="hidden sm:block overflow-x-auto">
         <table className="w-full">
           <thead className="bg-slate-50">
             <tr>
