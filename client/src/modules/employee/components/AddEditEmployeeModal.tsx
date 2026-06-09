@@ -12,7 +12,7 @@ import { useBranches } from "@/modules/branch";
 const employeeSchema = z.object({
   first_name: z.string().min(1, "Ism kiriting"),
   last_name: z.string().min(1, "Familiya kiriting"),
-  username: z.string().min(3, "Username kamida 3 ta belgi").max(50, "Username 50 belgidan oshmasin"),
+  username: z.string().min(3, "Foydalanuvchi nomi kamida 3 ta belgi").max(50, "Foydalanuvchi nomi 50 belgidan oshmasin"),
   // Backend min 8 talab qiladi
   password: z.string().min(8, "Parol kamida 8 ta belgi").or(z.literal("")),
   phone: z.string().refine((v) => /^\+998\d{9}$/.test(v), "To'liq raqam kiriting: +998 va 9 ta raqam"),
@@ -146,7 +146,7 @@ export function AddEditEmployeeModal({ open, employee, onClose, onSave, isSaving
             </FormField>
 
             <FormField label="Lavozim *" icon={<Briefcase size={12} className="text-slate-400" />} error={errors.position?.message}>
-              <input {...register("position")} className={inputCls} placeholder="Senior Developer" />
+              <input {...register("position")} className={inputCls} placeholder="Sotuvchi" />
             </FormField>
 
             {/* Telefon — +998 prefiks + formatlash */}
@@ -219,7 +219,7 @@ export function AddEditEmployeeModal({ open, employee, onClose, onSave, isSaving
               />
             </FormField>
 
-            <FormField label="Username *" icon={<Shield size={12} className="text-slate-400" />} error={errors.username?.message}>
+            <FormField label="Foydalanuvchi nomi *" icon={<Shield size={12} className="text-slate-400" />} error={errors.username?.message}>
               <input {...register("username")} className={inputCls} placeholder="jasur_dev" />
             </FormField>
 

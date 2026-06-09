@@ -20,14 +20,14 @@ export function StatsCards({ avgRate, totalLate, totalAbsent, totalPresent, rang
       {cards.map((s) => {
         const Icon = s.icon;
         return (
-          <div key={s.label} className="bg-white rounded-xl border border-slate-200 p-5">
-            <div className="flex items-center gap-3 mb-3">
+          <div key={s.label} className="bg-white rounded-xl border border-slate-200 p-3 sm:p-5">
+            <div className="flex items-center gap-3 mb-2 sm:mb-3">
               <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `color-mix(in srgb, ${s.color}, transparent 90%)` }}>
                 <Icon size={16} style={{ color: s.color }} />
               </div>
             </div>
-            <div className="text-2xl font-semibold text-slate-900 tabular-nums">{s.value}</div>
-            <div className="text-sm text-slate-400 mt-0.5">{s.label}</div>
+            <div className="text-xl sm:text-2xl font-semibold text-slate-900 tabular-nums">{s.value}</div>
+            <div className="text-xs sm:text-sm text-slate-400 mt-0.5">{s.label}</div>
             {rangeLabel && <div className="text-xs text-slate-400 mt-0.5 truncate">{rangeLabel}</div>}
           </div>
         );

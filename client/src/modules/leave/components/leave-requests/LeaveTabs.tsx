@@ -6,7 +6,7 @@ export function LeaveTabs({ tab, onTabChange, pendingCount }: any) {
           <button
             key={tabValue}
             onClick={() => onTabChange(tabValue)}
-            className={`border-b-2 px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
+            className={`border-b-2 px-2.5 sm:px-4 py-2.5 min-h-[40px] text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
               tab === tabValue
                 ? "border-primary text-primary"
                 : "border-transparent text-slate-400 hover:text-slate-700"

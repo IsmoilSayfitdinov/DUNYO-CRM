@@ -17,8 +17,8 @@ export function ConfirmActionModal({
   variant = "danger",
   title,
   description,
-  confirmLabel = "Confirm",
-  cancelLabel = "Cancel",
+  confirmLabel = "Tasdiqlash",
+  cancelLabel = "Bekor qilish",
   onConfirm,
   onClose,
 }: ConfirmActionModalProps) {

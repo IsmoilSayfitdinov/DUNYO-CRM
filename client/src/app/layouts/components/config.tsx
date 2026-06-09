@@ -73,7 +73,7 @@ export const roleConfigs = {
     sublabel: "Boshqaruv va tahlil",
     accent: "#dc2626",
     accentLight: "rgba(220, 38, 38, 0.08)",
-    badge: "ADMIN",
+    badge: "RAHBAR",
     badgeBg: "bg-red-600",
   },
   employee: {
@@ -82,7 +82,7 @@ export const roleConfigs = {
     sublabel: "Shaxsiy profil va davomat",
     accent: "#dc2626",
     accentLight: "rgba(220, 38, 38, 0.08)",
-    badge: "USER",
+    badge: "XODIM",
     badgeBg: "bg-red-600",
   },
 };

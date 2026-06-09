@@ -125,7 +125,7 @@ export function Topbar({
         </div>
         <div className="hidden xl:block min-w-0">
           <div className="text-xs font-semibold text-slate-700 leading-tight truncate">{userName}</div>
-          <div className="text-[10px] text-slate-400 truncate">{userSubtitle || role}</div>
+          <div className="text-[10px] text-slate-400 truncate">{userSubtitle || (role === "leader" ? "Rahbar" : "Xodim")}</div>
         </div>
       </div>
     </header>

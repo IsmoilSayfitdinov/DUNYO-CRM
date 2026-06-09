@@ -69,17 +69,17 @@ export function PayrollTable({ rows, isLoading, periodLabel, onAdjust, onMarkPai
                       <button
                         onClick={() => onAdjust(r.salaryId, r.name)}
                         title="Premiya qo'shish"
-                        className="p-1.5 text-success hover:bg-success/10 rounded-lg transition-colors border border-success/20 shrink-0"
+                        className="w-10 h-10 flex items-center justify-center text-success hover:bg-success/10 rounded-lg transition-colors border border-success/20 shrink-0"
                       >
-                        <Gift size={14} />
+                        <Gift size={16} />
                       </button>
                       {r.isPaid ? (
-                        <span className="text-xs bg-slate-100 text-slate-400 px-3 py-1.5 rounded-lg font-medium whitespace-nowrap">To'langan</span>
+                        <span className="text-xs bg-slate-100 text-slate-400 px-3 py-2.5 min-h-[40px] inline-flex items-center rounded-lg font-medium whitespace-nowrap">To'langan</span>
                       ) : (
                         <button
                           onClick={() => onMarkPaid(r.employeeId, r.salaryId)}
                           disabled={isPaying}
-                          className="text-xs bg-success text-success-foreground px-3 py-1.5 rounded-lg hover:opacity-90 transition-colors font-medium shadow-sm disabled:opacity-60 whitespace-nowrap"
+                          className="text-xs bg-success text-success-foreground px-3 py-2.5 min-h-[40px] rounded-lg hover:opacity-90 transition-colors font-medium shadow-sm disabled:opacity-60 whitespace-nowrap"
                         >
                           To'lash
                         </button>

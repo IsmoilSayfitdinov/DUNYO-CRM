@@ -45,7 +45,7 @@ export function MyRemindersCard() {
                 <button
                   onClick={() => markRead.mutate(r.id)}
                   disabled={markRead.isPending}
-                  className="shrink-0 inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-emerald-600 hover:border-emerald-200 transition-all disabled:opacity-50"
+                  className="shrink-0 inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-2 min-h-[40px] rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-emerald-600 hover:border-emerald-200 transition-all disabled:opacity-50"
                 >
                   <Check size={12} /> O'qildi
                 </button>

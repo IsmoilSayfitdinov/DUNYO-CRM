@@ -103,10 +103,10 @@ export function ManagerTasks() {
                     <h3 className="text-sm font-semibold text-slate-900">{t.title}</h3>
                     <button
                       onClick={() => setDeleting(t)}
-                      className="p-1.5 text-slate-300 hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors shrink-0"
+                      className="w-10 h-10 flex items-center justify-center text-slate-300 hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors shrink-0"
                       title="O'chirish"
                     >
-                      <Trash2 size={15} />
+                      <Trash2 size={16} />
                     </button>
                   </div>
                   {t.description && <p className="text-xs text-slate-400 mb-2.5 leading-relaxed">{t.description}</p>}

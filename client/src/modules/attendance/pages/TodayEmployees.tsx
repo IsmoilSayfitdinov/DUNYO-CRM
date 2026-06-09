@@ -72,7 +72,7 @@ export function TodayEmployees() {
           <button
             key={status}
             onClick={() => setFilter(filter === status ? "All" : status)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 min-h-[40px] rounded-xl text-sm font-medium border transition-all ${
               filter === status ? "bg-white text-slate-900 border-slate-900" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
             }`}
           >
@@ -107,11 +107,11 @@ export function TodayEmployees() {
 
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-medium text-slate-700 ml-1">Ko'rinish</label>
-          <div className="flex bg-slate-50 border border-slate-200 rounded-xl p-1 gap-1 h-10 sm:h-11 items-center">
-            <button onClick={() => setView("list")} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${view === "list" ? "bg-white text-primary shadow-sm" : "text-slate-400 hover:text-slate-700"}`}>
+          <div className="flex bg-slate-50 border border-slate-200 rounded-xl p-1 gap-1 h-11 items-stretch">
+            <button onClick={() => setView("list")} className={`flex items-center gap-2 px-3 rounded-lg text-xs font-semibold transition-all ${view === "list" ? "bg-white text-primary shadow-sm" : "text-slate-400 hover:text-slate-700"}`}>
               <List size={14} /> Jadval
             </button>
-            <button onClick={() => setView("grid")} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${view === "grid" ? "bg-white text-primary shadow-sm" : "text-slate-400 hover:text-slate-700"}`}>
+            <button onClick={() => setView("grid")} className={`flex items-center gap-2 px-3 rounded-lg text-xs font-semibold transition-all ${view === "grid" ? "bg-white text-primary shadow-sm" : "text-slate-400 hover:text-slate-700"}`}>
               <Grid size={14} /> Setka
             </button>
           </div>

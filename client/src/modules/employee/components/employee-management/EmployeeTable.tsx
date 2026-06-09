@@ -103,24 +103,24 @@ export function EmployeeTable({
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between px-3 sm:px-5 py-2.5 sm:py-3 border-t border-slate-200/50 bg-slate-50">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-3 sm:px-5 py-2.5 sm:py-3 border-t border-slate-200/50 bg-slate-50">
         <span className="text-[10px] sm:text-xs text-slate-400 hidden sm:inline">
           {filtered.length > 0 ? (page - 1) * pageSize + 1 : 0}–{Math.min(page * pageSize, filtered.length)} / {filtered.length}
         </span>
-        <div className="flex items-center gap-1.5">
+        <div className="flex flex-wrap items-center justify-end gap-1.5 w-full sm:w-auto">
           <button disabled={page === 1} onClick={() => onPageChange(page - 1)}
-            className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-white transition-all disabled:opacity-40">
-            <ChevronLeft size={14} />
+            className="w-10 h-10 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-white transition-all disabled:opacity-40">
+            <ChevronLeft size={16} />
           </button>
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
             <button key={p} onClick={() => onPageChange(p)}
-              className={`w-8 h-8 rounded-lg text-xs font-medium transition-all ${p === page ? "bg-primary text-primary-foreground" : "border border-slate-200 text-slate-400 hover:bg-white"}`}>
+              className={`w-10 h-10 rounded-lg text-xs font-medium transition-all ${p === page ? "bg-primary text-primary-foreground" : "border border-slate-200 text-slate-400 hover:bg-white"}`}>
               {p}
             </button>
           ))}
           <button disabled={page === totalPages} onClick={() => onPageChange(page + 1)}
-            className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-white transition-all disabled:opacity-40">
-            <ChevronRight size={14} />
+            className="w-10 h-10 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-white transition-all disabled:opacity-40">
+            <ChevronRight size={16} />
           </button>
         </div>
       </div>

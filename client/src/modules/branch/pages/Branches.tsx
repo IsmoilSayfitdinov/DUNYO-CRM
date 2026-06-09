@@ -70,33 +70,33 @@ export function Branches() {
                 </div>
               </div>
 
-              <div className="mt-4 flex items-center justify-between gap-2">
+              <div className="mt-4 pt-3 border-t border-slate-200/50 flex flex-wrap items-center justify-between gap-2">
                 <a
                   href={`https://maps.google.com/?q=${b.latitude},${b.longitude}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:opacity-80"
+                  className="inline-flex items-center gap-1.5 min-h-[40px] text-xs font-semibold text-primary hover:opacity-80"
                 >
                   Xaritada ko'rish <ExternalLink size={12} />
                 </a>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <button
                     onClick={() => setQrBranch(b)}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-red-700 border border-primary/20 bg-primary/5 rounded-lg px-2.5 py-1.5 hover:bg-primary/10 transition-all"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-red-700 border border-primary/20 bg-primary/5 rounded-lg px-3 py-2 min-h-[40px] hover:bg-primary/10 transition-all"
                   >
-                    <QrCode size={12} /> QR
+                    <QrCode size={14} /> QR
                   </button>
                   <button
                     onClick={() => openEdit(b)}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 rounded-lg px-2.5 py-1.5 hover:bg-slate-50 transition-all"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 rounded-lg px-3 py-2 min-h-[40px] hover:bg-slate-50 transition-all"
                   >
-                    <Pencil size={12} /> Tahrirlash
+                    <Pencil size={14} /> Tahrirlash
                   </button>
                   <button
                     onClick={() => setDeleting(b)}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-red-600 hover:text-slate-900 border border-slate-200 rounded-lg px-2.5 py-1.5 hover:bg-slate-50 transition-all"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-red-600 hover:text-slate-900 border border-slate-200 rounded-lg px-3 py-2 min-h-[40px] hover:bg-slate-50 transition-all"
                   >
-                    <Trash color="red" size={12} /> O'chirish
+                    <Trash color="red" size={14} /> O'chirish
                   </button>
                 </div>
               </div>

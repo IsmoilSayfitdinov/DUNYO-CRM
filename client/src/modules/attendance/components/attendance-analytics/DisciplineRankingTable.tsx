@@ -80,11 +80,11 @@ export function DisciplineRankingTable({
           {filtered.length > 0 ? (page - 1) * pageSize + 1 : 0}–{Math.min(page * pageSize, filtered.length)} tasini ko'rsatmoqda, jami {filtered.length} tadan
         </span>
         <div className="flex items-center gap-1 shrink-0">
-          <button disabled={page === 1} onClick={onPrev} className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-white disabled:opacity-40 transition-colors">
-            <ChevronLeft size={14} />
+          <button disabled={page === 1} onClick={onPrev} className="w-10 h-10 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-white disabled:opacity-40 transition-colors">
+            <ChevronLeft size={16} />
           </button>
-          <button disabled={page === totalPages} onClick={onNext} className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-white disabled:opacity-40 transition-colors">
-            <ChevronRight size={14} />
+          <button disabled={page === totalPages} onClick={onNext} className="w-10 h-10 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-white disabled:opacity-40 transition-colors">
+            <ChevronRight size={16} />
           </button>
         </div>
       </div>

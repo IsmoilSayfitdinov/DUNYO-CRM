@@ -39,7 +39,7 @@ export function Sidebar({
           {/* Close button - only on mobile */}
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden text-slate-400 hover:text-white transition-colors p-1"
+            className="lg:hidden w-10 h-10 -mr-1 flex items-center justify-center text-slate-400 hover:text-white transition-colors"
             aria-label="Yopish"
           >
             <X size={20} />
@@ -67,8 +67,8 @@ export function Sidebar({
                 )}
               </div>
             </div>
-            <button onClick={handleLogout} className="text-slate-500 hover:text-red-400 transition-colors p-1">
-              <LogOut size={15} />
+            <button onClick={handleLogout} aria-label="Chiqish" className="w-10 h-10 flex items-center justify-center shrink-0 text-slate-500 hover:text-red-400 transition-colors">
+              <LogOut size={16} />
             </button>
           </div>
         </div>

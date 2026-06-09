@@ -36,7 +36,7 @@
 ```
 dunyosupermarket/
 ├── server/    # Backend — FastAPI + PostgreSQL (async SQLAlchemy)
-├── web/       # Frontend — React + Vite + TypeScript (PWA)
+├── client/    # Frontend — React + Vite + TypeScript (PWA)
 ├── mobile/    # (rejada)
 └── certs/     # Lokal HTTPS sertifikatlari (ixtiyoriy)
 ```
@@ -79,12 +79,12 @@ python run.py
 
 > 🔒 **Xavfsizlik:** `DEBUG` production'da **`false`** bo'lishi shart — aks holda stack-trace va DB ulanish ma'lumotlari mijozga sizib chiqadi. `.env` git'ga **tushmaydi**.
 
-### 2. Frontend (`web/`)
+### 2. Frontend (`client/`)
 
 **Talablar:** Node.js 18+ (yoki Bun).
 
 ```bash
-cd web
+cd client
 
 npm i            # paketlarni o'rnatish
 npm run dev      # dev server (Vite)
@@ -137,7 +137,7 @@ Asosiy kalitlar (to'liq namuna — [`server/.env.example`](server/.env.example))
 Modul (feature) asosidagi arxitektura — "X qayerda?" degan savolga tezda javob:
 
 ```
-web/src/
+client/src/
 ├── app/        router · providers · layouts · styles
 ├── modules/    auth · employee · attendance · salary · dashboard · task
 │   │           notification · leave · audit · product · settings · branch · reminder
@@ -146,8 +146,8 @@ web/src/
 ```
 
 Batafsil:
-- [`web/docs/MAP.md`](web/docs/MAP.md) — "2 soniyada topish" xaritasi (URL → fayl, nomlash qoidalari)
-- [`web/docs/ARCHITECTURE.md`](web/docs/ARCHITECTURE.md) — arxitektura tamoyillari
+- [`client/docs/MAP.md`](client/docs/MAP.md) — "2 soniyada topish" xaritasi (URL → fayl, nomlash qoidalari)
+- [`client/docs/ARCHITECTURE.md`](client/docs/ARCHITECTURE.md) — arxitektura tamoyillari
 
 ---
 

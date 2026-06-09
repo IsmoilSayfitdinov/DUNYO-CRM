@@ -40,8 +40,8 @@ export function AttendanceRecordsTable({ attRows, monthDate, onEditRecord }: Pro
                 <td className="px-5 py-3"><StatusBadge status={r.badge as any} /></td>
                 <td className="px-5 py-3 text-sm font-bold text-primary">{r.earned > 0 ? `${r.earned.toLocaleString()} UZS` : "—"}</td>
                 <td className="px-5 py-3">
-                  <button onClick={() => onEditRecord(r)} className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-primary hover:bg-primary/10 transition-colors">
-                    <PenLine size={15} />
+                  <button onClick={() => onEditRecord(r)} className="w-10 h-10 flex items-center justify-center rounded-lg text-slate-400 hover:text-primary hover:bg-primary/10 transition-colors">
+                    <PenLine size={16} />
                   </button>
                 </td>
               </tr>

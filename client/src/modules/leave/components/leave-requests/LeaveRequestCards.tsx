@@ -35,15 +35,15 @@ export function LeaveRequestCards({ requests, onApprove, onReject }: any) {
                   <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => onApprove(req.id)}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg bg-success/10 text-success border border-success/20"
+                      className="flex h-10 w-10 items-center justify-center rounded-lg bg-success/10 text-success border border-success/20"
                     >
-                      <Check size={14} />
+                      <Check size={16} />
                     </button>
                     <button
                       onClick={() => onReject(req.id)}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg bg-destructive/10 text-destructive border border-destructive/20"
+                      className="flex h-10 w-10 items-center justify-center rounded-lg bg-destructive/10 text-destructive border border-destructive/20"
                     >
-                      <X size={14} />
+                      <X size={16} />
                     </button>
                   </div>
                 )}

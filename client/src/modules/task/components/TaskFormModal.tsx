@@ -99,7 +99,7 @@ export function TaskFormModal({ open, onClose, onConfirm, employees, busy = fals
           </div>
 
           {/* Priority + Due date */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="flex items-center gap-1.5 text-sm font-semibold text-slate-700 mb-1.5"><Flag size={14} /> Ustuvorlik</label>
               <CustomSelect options={priorityOptions} value={priority} onValueChange={(v) => setPriority(v as TaskPriority)} />

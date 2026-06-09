@@ -9,7 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
 const loginSchema = z.object({
-  username: z.string().min(3, "Username kamida 3 ta belgi"),
+  username: z.string().min(3, "Foydalanuvchi nomi kamida 3 ta belgi"),
   password: z.string().min(1, "Parolni kiriting"),
 });
 
@@ -40,7 +40,7 @@ export function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const { mutate: login, isPending, error: loginError } = useLogin();
 
-  const error = loginError ? "Username yoki parol noto'g'ri kiritildi." : "";
+  const error = loginError ? "Foydalanuvchi nomi yoki parol noto'g'ri kiritildi." : "";
 
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -192,7 +192,7 @@ export function Login() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {/* Username */}
               <div className="space-y-1.5" style={rise(0.48)}>
-                <label className="text-[13px] font-semibold text-slate-500 block ml-0.5">Username</label>
+                <label className="text-[13px] font-semibold text-slate-500 block ml-0.5">Foydalanuvchi nomi</label>
                 <div className="group relative rounded-xl border-2 border-slate-100 bg-slate-50/70 focus-within:border-primary focus-within:bg-white focus-within:shadow-sm transition-all duration-200">
                   <User size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors" />
                   <input

@@ -1,59 +1,85 @@
-# Dependencies
-node_modules/
+# ============================================================
+#  DUNYO CRM — monorepo .gitignore
+#  (server/ — FastAPI · client/ — React/Vite · mobile/)
+# ============================================================
 
-# Build output
+# ---------- Maxfiy ma'lumotlar (HECH QACHON commit qilinmasin) ----------
+# Muhit o'zgaruvchilari — .env.example tracked, qolgani yo'q
+.env
+.env.*
+!.env.example
+
+# TLS / SSL sertifikat va kalitlar
+certs/
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# Boshqa sirlar
+*.secret
+secrets.*
+
+# ---------- Node / Frontend (client/) ----------
+node_modules/
 dist/
 dev-dist/
+.vite/
+*.local
 
-# Logs
-*.log
+# npm / yarn / pnpm / bun loglari
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-# Editor / OS
-.DS_Store
-.vscode/
-.idea/
-
-# Env (keep .env tracked? excluded by default for safety)
-.env.local
-# Python
+# ---------- Python / Backend (server/) ----------
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
 
-# Virtual environments
+# Virtual muhitlar
 .venv/
 venv/
 env/
+ENV/
 
-# Environment variables
-.env
-.env.local
-.env.*.local
+# Build / paket artefaktlari
+build/
+*.egg-info/
+.eggs/
 
-# IDE
+# Test / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.mypy_cache/
+.ruff_cache/
+
+# ---------- Ma'lumotlar bazasi (lokal) ----------
+*.db
+*.sqlite
+*.sqlite3
+
+# ---------- Loglar ----------
+*.log
+logs/
+
+# ---------- Muharrir / IDE ----------
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
 
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
-
-# Build
-build/
-dist/
-*.egg-info/
-
-# OS
+# ---------- OS ----------
 .DS_Store
+.DS_Store?
+._*
 Thumbs.db
-
-# Local databases
-*.db
-*.sqlite3
+desktop.ini

@@ -5,8 +5,8 @@ export function RowMenu({ onView, onEdit, onToggleActive, isActive, onDelete }: 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all">
-          <MoreVertical size={15} />
+        <button className="w-10 h-10 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all">
+          <MoreVertical size={16} />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" sideOffset={6} className="w-48 rounded-xl">
