@@ -1,0 +1,26 @@
+"""add notify_attendance to user_settings
+
+Revision ID: f6a7b8c9d0e1
+Revises: e5f6a7b8c9d0
+Create Date: 2026-06-08
+
+"""
+from alembic import op
+import sqlalchemy as sa
+
+
+revision = "f6a7b8c9d0e1"
+down_revision = "e5f6a7b8c9d0"
+branch_labels = None
+depends_on = None
+
+
+def upgrade() -> None:
+    op.add_column(
+        "user_settings",
+        sa.Column("notify_attendance", sa.Boolean(), server_default="true", nullable=False),
+    )
+
+
+def downgrade() -> None:
+    op.drop_column("user_settings", "notify_attendance")

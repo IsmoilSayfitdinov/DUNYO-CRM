@@ -1,0 +1,179 @@
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router";
+import { EmptyState } from "@/shared/ui/EmptyState";
+import { toHHMM, ATTENDANCE_BADGE, STATUS_TO_BACKEND } from "@/shared/utils";
+import { useEmployee, AddEditEmployeeModal, useSaveEmployee, useSetEmployeeActive } from "@/modules/employee";
+import { useEmployeeAttendance, EditAttendanceModal, useUpdateAttendance } from "@/modules/attendance";
+import { useEmployeeSalary, useCalculateSalary, usePaySalary, useAdjustSalary, SalaryAdjustmentModal } from "@/modules/salary";
+import {
+  EmployeeProfileHeader,
+  EmployeeStatsGrid,
+  AttendanceCalendar,
+  SalaryHistoryCard,
+  AttendanceRecordsTable,
+  ManagerNotes,
+} from "../components/employee-detail";
+
+export function EmployeeDetail() {
+  
+  const { id = "" } = useParams();
+  const navigate = useNavigate();
+
+  const [period, setPeriod] = useState(() => {
+    const d = new Date();
+    return { year: d.getFullYear(), month: d.getMonth() + 1 };
+  });
+  const monthDate = new Date(period.year, period.month - 1, 1);
+
+  const { data: emp, isLoading, isError } = useEmployee(id);
+  const { data: attData } = useEmployeeAttendance(id, { year: period.year, month: period.month, limit: 50 });
+  const { data: salaryData } = useEmployeeSalary(id, { limit: 24 });
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editRecord, setEditRecord] = useState<any>(null);
+
+  const saveEmployee = useSaveEmployee(id);
+  const setActive = useSetEmployeeActive();
+  const updateAttendance = useUpdateAttendance(editRecord?.id ?? "");
+  const calculateSalary = useCalculateSalary();
+  const paySalary = usePaySalary();
+  const adjustSalary = useAdjustSalary();
+  const [adjustTarget, setAdjustTarget] = useState<{ salaryId: string; name: string } | null>(null);
+
+  useEffect(() => { setEditRecord(null); setModalOpen(false); }, [id]);
+
+  if (isLoading) {
+    return <EmptyState variant="loading" title="Yuklanmoqda…" description="Xodim ma'lumotlari olinmoqda" />;
+  }
+  if (isError || !emp) {
+    return <EmptyState variant="error" title="Yuklab bo'lmadi" description="Xodim ma'lumotini yuklab bo'lmadi." />;
+  }
+
+  const fullName = `${emp.user.first_name} ${emp.user.last_name}`.trim() || emp.user.username;
+
+  // Tanlangan oy (kalendardagi period) uchun ish haqi yozuvi — Hisoblash/To'lash holatini shu belgilaydi.
+  const pad2 = (n: number) => String(n).padStart(2, "0");
+  const periodKey = `${period.year}-${pad2(period.month)}`;
+  const periodSalary = (salaryData ?? []).find((s) => String(s.month).slice(0, 7) === periodKey);
+
+  // Oylik hisoblash faqat OY TUGAGANDAN keyin (joriy/kelajak oyda emas).
+  const now = new Date();
+  const isPeriodEnded =
+    period.year < now.getFullYear() ||
+    (period.year === now.getFullYear() && period.month < now.getMonth() + 1);
+
+  const handleCalculateSalary = () =>
+    calculateSalary.mutate({ employeeId: emp.id, year: period.year, month: period.month });
+  const handlePaySalary = () => {
+    if (periodSalary) paySalary.mutate({ employeeId: emp.id, salaryId: periodSalary.id });
+  };
+  const handleAdjustConfirm = (adjustment: { amount: number }) => {
+    if (!adjustTarget) return;
+    adjustSalary.mutate(
+      { salaryId: adjustTarget.salaryId, bonus: adjustment.amount },
+      { onSuccess: () => setAdjustTarget(null) },
+    );
+  };
+
+  const attRows = (attData?.items ?? []).map((a) => ({
+    id: a.id,
+    work_date: a.work_date,
+    date: a.work_date,
+    checkIn: toHHMM(a.check_in),
+    checkOut: toHHMM(a.check_out),
+    status: a.status,
+    badge: ATTENDANCE_BADGE[a.status] ?? a.status,
+    notes: a.notes ?? "",
+    duration: a.duration_hours ? `${a.duration_hours}h` : "-",
+    earned: Number(a.earned_amount) || 0,
+  }));
+
+  const handleSaveAttendance = (updated: any) => {
+    if (!editRecord) return;
+    // Vaqt kiritilmagan bo'lsa null yuboramiz (undefined emas) — shunda backend
+    // mavjud vaqtni tozalaydi, aks holda PATCH'da maydon tushib qolib eski qiymat saqlanardi.
+    // Foydalanuvchi MAHALLIY vaqt kiritadi; uni timezone'li to'liq ISO-8601 (UTC)
+    // ga aylantirib yuboramiz, aks holda backend noaniq instant sifatida saqlaydi.
+    const toDate = (t: string): Date | null => {
+      if (!t) return null;
+      const d = new Date(`${editRecord.work_date}T${t}:00`);
+      return isNaN(d.getTime()) ? null : d;
+    };
+    const checkIn = toDate(updated.checkIn);
+    let checkOut = toDate(updated.checkOut);
+    // TUNGI SMENA: chiqish kirishdan oldin bo'lsa (masalan 16:00 -> 00:00),
+    // chiqish KEYINGI kunга o'tadi. Aks holda backend manfiy davomiylik deb 400 berardi.
+    if (checkIn && checkOut && checkOut.getTime() < checkIn.getTime()) {
+      checkOut = new Date(checkOut.getTime() + 24 * 60 * 60 * 1000);
+    }
+    updateAttendance.mutate(
+      {
+        status: STATUS_TO_BACKEND[updated.status] ?? updated.status,
+        check_in: checkIn ? checkIn.toISOString() : null,
+        check_out: checkOut ? checkOut.toISOString() : null,
+        notes: updated.notes ?? undefined,
+      },
+      { onSuccess: () => setEditRecord(null) },
+    );
+  };
+
+  return (
+    <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-2 text-sm text-slate-400 mb-2">
+        <button onClick={() => navigate("/leader/staff")} className="hover:text-slate-700 transition-colors">Xodimlar</button>
+        <span className="text-slate-600">/</span>
+        <span className="text-slate-900 font-medium">{fullName}</span>
+      </div>
+
+      <EmployeeProfileHeader
+        emp={emp}
+        periodSalary={periodSalary}
+        periodLabel={periodKey}
+        canCalculate={isPeriodEnded}
+        onEdit={() => setModalOpen(true)}
+        onToggleActive={(next) => setActive.mutate({ id: emp.id, isActive: next })}
+        isToggling={setActive.isPending}
+        onCalculateSalary={handleCalculateSalary}
+        onPaySalary={handlePaySalary}
+        isCalculating={calculateSalary.isPending}
+        isPaying={paySalary.isPending}
+      />
+
+      <EmployeeStatsGrid attRows={attRows} hourlyRate={emp.hourly_rate} />
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <AttendanceCalendar period={period} onPeriodChange={setPeriod} attRows={attRows} />
+        <SalaryHistoryCard
+          salaryData={salaryData}
+          onAdjustBonus={(salaryId) => setAdjustTarget({ salaryId, name: fullName })}
+        />
+      </div>
+
+      <AttendanceRecordsTable
+        attRows={attRows}
+        monthDate={monthDate}
+        onEditRecord={(r) => setEditRecord({ ...r, status: r.badge })}
+      />
+
+      <ManagerNotes employeeId={id} employeeName={fullName} />
+
+      <AddEditEmployeeModal
+        open={modalOpen}
+        employee={emp}
+        onClose={() => setModalOpen(false)}
+        onSave={(values) => saveEmployee.mutate(values, { onSuccess: () => setModalOpen(false) })}
+        isSaving={saveEmployee.isPending}
+      />
+      <EditAttendanceModal open={!!editRecord} record={editRecord} onClose={() => setEditRecord(null)} onSave={handleSaveAttendance} />
+
+      <SalaryAdjustmentModal
+        open={!!adjustTarget}
+        employeeName={adjustTarget?.name ?? ""}
+        defaultType="bonus"
+        onClose={() => setAdjustTarget(null)}
+        onConfirm={handleAdjustConfirm}
+      />
+    </div>
+  );
+}
