@@ -29,7 +29,7 @@ export function PendingVerification() {
           { label: "Kritik holatlar", value: items.filter((i) => i.severity === "critical").length, color: "var(--destructive)" },
           { label: "Bugun hal qilingan", value: resolved.length, color: "var(--success)" },
         ].map((s) => (
-          <div key={s.label} className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-3 sm:p-5 transition-all hover:shadow-lg">
+          <div key={s.label} className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-3 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
             <div className="text-xl sm:text-3xl font-black mb-1 tracking-tight" style={{ color: s.color }}>{s.value}</div>
             <div className="text-xs font-bold uppercase tracking-widest text-slate-400">{s.label}</div>
           </div>
@@ -50,7 +50,7 @@ export function PendingVerification() {
               <div
                 key={item.id}
                 className={`bg-white rounded-xl border overflow-hidden ${
-                  item.severity === "critical" ? "border-red-200" : "border-amber-200"
+                  item.severity === "critical" ? "border-destructive/20" : "border-warning/20"
                 }`}
               >
                 <div className={`px-3 sm:px-5 py-3 flex items-center gap-3 ${
@@ -89,27 +89,28 @@ export function PendingVerification() {
 
                   <div className="mt-4">
                     <input
-                      className="w-full text-sm border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 text-slate-700 placeholder-slate-400 focus:outline-none mb-3"
+                      className="w-full text-sm border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/60 transition-all mb-3"
                       placeholder="Menejer izohi..."
+                      aria-label="Menejer izohi"
                       value={notes[item.id] || ""}
                       onChange={(e) => setNotes((n) => ({ ...n, [item.id]: e.target.value }))}
                     />
-                    <div className="flex gap-3">
+                    <div className="flex flex-wrap gap-2 sm:gap-3">
                       <button
                         onClick={() => resolve(item.id, "approved")}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground text-sm font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20 active:scale-[0.98]"
+                        className="flex items-center gap-2 px-4 py-2.5 bg-success text-white text-sm font-bold rounded-xl hover:bg-success/90 transition-all shadow-lg shadow-success/20 active:scale-[0.98]"
                       >
                         <CheckCircle size={15} /> Tasdiqlash
                       </button>
                       <button
                         onClick={() => resolve(item.id, "rejected")}
-                        className="flex items-center gap-2 px-4 py-2 bg-white border border-destructive/20 text-destructive text-sm font-bold rounded-xl hover:bg-destructive/5 transition-all active:scale-[0.98]"
+                        className="flex items-center gap-2 px-4 py-2.5 bg-white border border-destructive/20 text-destructive text-sm font-bold rounded-xl hover:bg-destructive/5 transition-all active:scale-[0.98]"
                       >
                         <X size={15} /> Rad etish
                       </button>
                       <button
                         onClick={() => resolve(item.id, "reviewed")}
-                        className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 text-sm font-bold rounded-xl hover:bg-slate-700 transition-all active:scale-[0.98]"
+                        className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 text-slate-600 text-sm font-bold rounded-xl hover:bg-slate-200 transition-all active:scale-[0.98]"
                       >
                         <Eye size={15} /> Ko'rib chiqildi
                       </button>

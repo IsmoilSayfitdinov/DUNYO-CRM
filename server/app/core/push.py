@@ -23,13 +23,6 @@ def push_configured() -> bool:
 
 @lru_cache(maxsize=1)
 def _private_key() -> str:
-    """pywebpush QABUL QILADIGAN raw base64url private key qaytaradi.
-
-    .env'da kalit PEM ko'rinishida (`-----BEGIN...`, \\n bilan bitta qatorda) yoki
-    raw base64url ko'rinishida bo'lishi mumkin — ikkalasini ham qo'llab-quvvatlaymiz.
-    Muhim: pywebpush PEM-string'ni noto'g'ri o'qiydi (ASN.1 xato), shuning uchun har
-    doim raw base64url'ga aylantirib beramiz.
-    """
     raw = (setting.VAPID_PRIVATE_KEY or "").strip()
     if "-----BEGIN" in raw or "\\n" in raw or "\n" in raw:
         pem = raw.replace("\\n", "\n")

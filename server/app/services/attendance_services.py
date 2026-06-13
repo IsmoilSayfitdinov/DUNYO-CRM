@@ -1,6 +1,6 @@
 import logging
 import math
-from datetime import date, datetime, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from uuid import UUID
 
 from fastapi import Depends, HTTPException, status
@@ -25,7 +25,7 @@ logger = logging.getLogger("app.attendance")
 
 
 class AttendanceService:
-    MAX_DAILY_ATTENDANCE = 2
+    MAX_DAILY_ATTENDANCE = 1
 
     def __init__(
         self,
@@ -42,6 +42,34 @@ class AttendanceService:
         self.branch_repo = branch_repo
         self.user_repo = user_repo
         self.notif = notif
+
+    DEFAULT_SHIFT_LEN = timedelta(hours=12)
+
+    @classmethod
+    def _is_late(cls, shift_start: time | None, shift_end: time | None, local_now: datetime) -> bool:
+        if shift_start is None:
+            return False
+
+        start_min = shift_start.hour * 60 + shift_start.minute
+        now_min = local_now.hour * 60 + local_now.minute
+
+        # Smena oxiri (daqiqada). Tun aylansa (end <= start) +24h.
+        if shift_end is not None:
+            end_min = shift_end.hour * 60 + shift_end.minute
+            if end_min <= start_min:
+                end_min += 24 * 60
+        else:
+            end_min = start_min + cls.DEFAULT_SHIFT_LEN.total_seconds() / 60
+
+        # check-in shift_start'dan "oldin" ko'rinsa, tun aylanishini hisobga olib +24h.
+        if now_min < start_min:
+            now_min += 24 * 60
+
+        # Smena oynasidan keyin (ancha kech) -> bu boshqa kun, kechikish emas.
+        if now_min > end_min:
+            return False
+
+        return now_min > start_min
 
     async def _employee_name(self, employee) -> str:
         """Xodimning o'qiladigan ismi (User'dan; xato bo'lsa 'Xodim')."""
@@ -162,13 +190,105 @@ class AttendanceService:
                 detail=f"Siz magazinda emassiz (uzoqlik: {int(dist) if math.isfinite(dist) else '∞'}m) !"
             )
 
+   
+    async def get_my_attendance(self, user_id: UUID, limit: int, offset: int, year: int | None, month: int | None) -> AttendanceListResponse:
+        employee = await get_current_employee(self.employee_repo, user_id)
+
+        return await self._build_list(employee, limit, offset, year, month)
+
+    async def get_employee_attendance(self, user_id: UUID, employee_id: UUID, limit: int, offset: int, year: int | None, month: int | None) -> AttendanceListResponse:
+        employee = await verify_leader_owns_employee(
+            self.leader_repo, self.employee_repo, user_id=user_id, employee_id=employee_id
+        )
+
+        return await self._build_list(employee, limit, offset, year, month)
+
+    async def get_today_team(self, user_id: UUID, work_date: date | None = None) -> list[AttendanceInfo]:
+        leader = await self._get_leader(user_id)
+
+        if work_date is None:
+            work_date = today_local()
+
+        attendances = await self.repo.get_for_team(leader_id=leader.id, work_date=work_date)
+
+        return [self._build_info(att, att.employee) for att in attendances]
+
+    async def get_attendance_trend(self, user_id: UUID, start_date: date | None, end_date: date | None) -> list[AttendanceTrendItem]:
+        leader = await self._get_leader(user_id)
+
+        if end_date is None:
+            end_date = today_local()
+        if start_date is None:
+            start_date = end_date.replace(day=1)
+
+        rows = await self.repo.get_daily_trend_for_leader(leader.id, start_date, end_date)
+        return [
+            AttendanceTrendItem(date=r.date, present=r.present, late=r.late, absent=r.absent)
+            for r in rows
+        ]
+
+    async def get_my_weekly(self, user_id: UUID, year: int | None, month: int | None) -> list[WeeklyAttendanceItem]:
+        employee = await get_current_employee(self.employee_repo, user_id)
+
+        today = today_local()
+        year = year or today.year
+        month = month or today.month
+
+        records = await self.repo.get_for_month(employee_id=employee.id, year=year, month=month)
+
+        hours_by_week: dict[int, float] = {}
+        days_by_week: dict[int, int] = {}
+
+        for record in records:
+            week = (record.work_date.day - 1) // 7 + 1   # W1:1-7, W2:8-14, W3:15-21, W4:22+
+            if week > 4:
+                week = 4                            # W5 (29-31) → W4 ga qo'shamiz
+
+            if record.check_in and record.check_out:
+                hours = (record.check_out - record.check_in).total_seconds() / 3600
+                hours_by_week[week] = hours_by_week.get(week, 0.0) + hours
+                days_by_week[week] = days_by_week.get(week, 0) + 1
+
+        return [
+            WeeklyAttendanceItem(
+                week=f"W{w}",
+                hours=round(hours_by_week.get(w, 0.0), 1),
+                days=days_by_week.get(w, 0),
+            )
+            for w in range(1, 5)
+        ]
     
+    async def attendance_report(self, user_id: UUID, year: int, month: int) -> list[AttendanceReportRow]:
+        """Rahbar: oylik davomat hisoboti — har xodim bo'yicha kelgan/kechikkan/jami."""
+        leader = await self._get_leader(user_id)
+        employees = await self.employee_repo.get_by_leader_id(leader.id)
+        stats = await self.repo.get_month_stats([e.id for e in employees], year, month)
+        rows: list[AttendanceReportRow] = []
+        for e in employees:
+            u = e.user
+            name = (f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username) if u else "Xodim"
+            s = stats.get(e.id)
+            present = int(s.present) if s else 0
+            on_time = int(s.on_time) if s else 0
+            total = int(s.total) if s else 0
+            rows.append(AttendanceReportRow(
+                employee_id=e.id,
+                employee_name=name,
+                present=present,
+                late=present - on_time,
+                on_time=on_time,
+                total=total,
+            ))
+        return rows
+
     async def check_in(self, user_id: UUID, data: ScanRequest) -> AttendanceInfo:
         employee = await get_current_employee(self.employee_repo, user_id)
 
         await self._verify_location(employee, data)
         await self._get_active_attendance(employee_id=employee.id, method="check-in")
-        count_attendance = await self.repo.get_today_count(employee_id=employee.id)
+        # Faqat HAQIQIY davomat (came/late/left) limitga hisoblanadi — absent/leave
+        # placeholder'i check-in'ni bloklamaydi.
+        count_attendance = await self.repo.get_today_attended_count(employee_id=employee.id)
 
         if count_attendance >= self.MAX_DAILY_ATTENDANCE:
             raise HTTPException(
@@ -178,22 +298,35 @@ class AttendanceService:
 
         now = now_utc()
         # Kechikishni MAHALLIY vaqtda aniqlaymiz (UTC bilan solishtirish noto'g'ri edi).
+        # _is_late yarim tunni kesuvchi smenani ham to'g'ri hisoblaydi.
         local_now = to_local(now)
-        is_late = bool(employee.shift_start and local_now.time() > employee.shift_start)
+        is_late = self._is_late(employee.shift_start, employee.shift_end, local_now)
         attendance_status = AttendanceStatus.late if is_late else AttendanceStatus.came
 
-        new_attendance = Attendance(
-            employee_id=employee.id,
-            work_date=today_local(),
-            check_in=now,
-            check_out=None,
-            status=attendance_status,
-            is_late=is_late,
-            notes=data.notes
-        )
+        # Avto-job bugun absent/leave yozib qo'ygan bo'lsa — YANGI yozuv yaratish
+        # o'rniga shu placeholder'ni qayta ishlatamiz (bir kunda ikki yozuv qolmasin).
+        placeholder = await self.repo.get_today_placeholder(employee_id=employee.id)
 
         try:
-            created = await self.repo.create(new_attendance)
+            if placeholder is not None:
+                placeholder.check_in = now
+                placeholder.check_out = None
+                placeholder.status = attendance_status
+                placeholder.is_late = is_late
+                if data.notes:
+                    placeholder.notes = data.notes
+                created = await self.repo.update(placeholder)
+            else:
+                new_attendance = Attendance(
+                    employee_id=employee.id,
+                    work_date=today_local(),
+                    check_in=now,
+                    check_out=None,
+                    status=attendance_status,
+                    is_late=is_late,
+                    notes=data.notes
+                )
+                created = await self.repo.create(new_attendance)
         except IntegrityError:
             # Bir vaqtda ikkinchi check-in (race) — partial unique index ushladi.
             await self.repo.database.rollback()
@@ -259,113 +392,112 @@ class AttendanceService:
 
         return self._build_info(updated, employee)
 
-    async def get_my_attendance(self, user_id: UUID, limit: int, offset: int, year: int | None, month: int | None) -> AttendanceListResponse:
-        employee = await get_current_employee(self.employee_repo, user_id)
-
-        return await self._build_list(employee, limit, offset, year, month)
-
-    async def get_employee_attendance(self, user_id: UUID, employee_id: UUID, limit: int, offset: int, year: int | None, month: int | None) -> AttendanceListResponse:
-        employee = await verify_leader_owns_employee(
-            self.leader_repo, self.employee_repo, user_id=user_id, employee_id=employee_id
-        )
-
-        return await self._build_list(employee, limit, offset, year, month)
-
-    async def get_today_team(self, user_id: UUID, work_date: date | None = None) -> list[AttendanceInfo]:
-        leader = await self._get_leader(user_id)
-
-        if work_date is None:
-            work_date = today_local()
-
-        attendances = await self.repo.get_for_team(leader_id=leader.id, work_date=work_date)
-
-        return [self._build_info(att, att.employee) for att in attendances]
-
-    async def get_attendance_trend(self, user_id: UUID, start_date: date | None, end_date: date | None) -> list[AttendanceTrendItem]:
-        leader = await self._get_leader(user_id)
-
-        if end_date is None:
-            end_date = today_local()
-        if start_date is None:
-            start_date = end_date.replace(day=1)
-
-        rows = await self.repo.get_daily_trend_for_leader(leader.id, start_date, end_date)
-        return [
-            AttendanceTrendItem(date=r.date, present=r.present, late=r.late, absent=r.absent)
-            for r in rows
-        ]
-
-    async def attendance_report(self, user_id: UUID, year: int, month: int) -> list[AttendanceReportRow]:
-        """Rahbar: oylik davomat hisoboti — har xodim bo'yicha kelgan/kechikkan/jami."""
-        leader = await self._get_leader(user_id)
-        employees = await self.employee_repo.get_by_leader_id(leader.id)
-        stats = await self.repo.get_month_stats([e.id for e in employees], year, month)
-        rows: list[AttendanceReportRow] = []
-        for e in employees:
-            u = e.user
-            name = (f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username) if u else "Xodim"
-            s = stats.get(e.id)
-            present = int(s.present) if s else 0
-            on_time = int(s.on_time) if s else 0
-            total = int(s.total) if s else 0
-            rows.append(AttendanceReportRow(
-                employee_id=e.id,
-                employee_name=name,
-                present=present,
-                late=present - on_time,
-                on_time=on_time,
-                total=total,
-            ))
-        return rows
-
-    async def get_my_weekly(self, user_id: UUID, year: int | None, month: int | None) -> list[WeeklyAttendanceItem]:
-        employee = await get_current_employee(self.employee_repo, user_id)
-
-        today = today_local()
-        year = year or today.year
-        month = month or today.month
-
-        records = await self.repo.get_for_month(employee_id=employee.id, year=year, month=month)
-
-        hours_by_week: dict[int, float] = {}
-        days_by_week: dict[int, int] = {}
-
-        for r in records:
-            week = (r.work_date.day - 1) // 7 + 1   # W1:1-7, W2:8-14, W3:15-21, W4:22+
-            if week > 4:
-                week = 4                            # W5 (29-31) → W4 ga qo'shamiz
-
-            if r.check_in and r.check_out:
-                hours = (r.check_out - r.check_in).total_seconds() / 3600
-                hours_by_week[week] = hours_by_week.get(week, 0.0) + hours
-                days_by_week[week] = days_by_week.get(week, 0) + 1
-
-        return [
-            WeeklyAttendanceItem(
-                week=f"W{w}",
-                hours=round(hours_by_week.get(w, 0.0), 1),
-                days=days_by_week.get(w, 0),
-            )
-            for w in range(1, 5)
-        ]
-
     async def scan(self, user_id: UUID, data: ScanRequest) -> AttendanceInfo:
         employee = await get_current_employee(self.employee_repo, user_id)
         active = await self.repo.get_open(employee_id=employee.id)
 
         if active is not None:
             return await self.check_out(user_id=user_id, data=data)
-        
-        today_count = await self.repo.get_today_count(employee_id=employee.id)
-        
+
+        today_count = await self.repo.get_today_attended_count(employee_id=employee.id)
+
         if today_count > 0:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Bugun ish kuningiz allaqachon tugagan (keldi va ketdi belgilangan) !"
             )
-        
+
         return await self.check_in(user_id=user_id, data=data)
 
+    async def nfc(self, nfc_uid: str) -> AttendanceInfo:
+        employee = await self.employee_repo.get_by_nfc_uid(nfc_uid=nfc_uid)
+
+        if employee is None:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Bu NFC karta hech kimga biriktirilmagan!")
+
+        now = now_utc()
+        local_now = to_local(now)
+
+        active = await self.repo.get_open(employee_id=employee.id)
+        if active is not None:
+            active.check_out = now
+            active.status = AttendanceStatus.left
+            updated = await self.repo.update(active)
+            try:
+                local_t = local_now.strftime("%H:%M")
+                await self.notif.notify(
+                    employee.user_id, title="Ishdan ketdingiz ✅",
+                    body=f"Bugun {local_t} da check-out muvaffaqiyatli",
+                    type="attendance", link="/",
+                )
+            except Exception:
+                logger.exception("NFC check-out notify xatosi")
+            return self._build_info(updated, employee)
+
+        today_count = await self.repo.get_today_attended_count(employee_id=employee.id)
+        if today_count >= self.MAX_DAILY_ATTENDANCE:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Bugun ish kuningiz allaqachon tugagan!"
+            )
+
+        is_late = self._is_late(employee.shift_start, employee.shift_end, local_now)
+        attendance_status = AttendanceStatus.late if is_late else AttendanceStatus.came
+
+        placeholder = await self.repo.get_today_placeholder(employee_id=employee.id)
+        try:
+            if placeholder is not None:
+                placeholder.check_in = now
+                placeholder.check_out = None
+                placeholder.status = attendance_status
+                placeholder.is_late = is_late
+                created = await self.repo.update(placeholder)
+            else:
+                new_attendance = Attendance(
+                    employee_id=employee.id,
+                    work_date=today_local(),
+                    check_in=now,
+                    check_out=None,
+                    status=attendance_status,
+                    is_late=is_late,
+                )
+                created = await self.repo.create(new_attendance)
+        except IntegrityError:
+            await self.repo.database.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Siz allaqachon check-in qilgansiz."
+            )
+
+        try:
+            local_t = local_now.strftime("%H:%M")
+            if is_late:
+                await self.notif.notify(
+                    employee.user_id, title="Kechikib keldingiz ⏰",
+                    body=f"Bugun {local_t} da check-in qildingiz (kechikish belgilandi)",
+                    type="attendance", link="/",
+                )
+                leader = await self.leader_repo.get_by_id(employee.leader_id)
+                if leader:
+                    name = await self._employee_name(employee)
+                    await self.notif.notify(
+                        leader.user_id, title="Xodim kechikdi ⏰",
+                        body=f"{name} bugun {local_t} da kechikib keldi",
+                        type="attendance", link="/",
+                    )
+            else:
+                await self.notif.notify(
+                    employee.user_id, title="Ishga keldingiz ✅",
+                    body=f"Bugun {local_t} da check-in muvaffaqiyatli",
+                    type="attendance", link="/",
+                )
+        except Exception:
+            logger.exception("NFC check-in notify xatosi")
+
+        return self._build_info(created, employee)
+        
+    
+    
     async def update(self, data: AttendanceUpdate, attendance_id: UUID, user_id: UUID) -> AttendanceInfo:
         leader = await self._get_leader(user_id)
 
@@ -392,6 +524,23 @@ class AttendanceService:
         update_fields = data.model_dump(exclude_unset=True)
         for field, value in update_fields.items():
             setattr(attendance, field, value)
+            
+        # "Ochiq" (check_out IS NULL) faqat HAQIQIY smena uchun ruxsat etiladi:
+        # ya'ni status keldi/kechikdi bo'lsa. absent/leave/reason/left holatlari
+        # check_out'siz ochiq smena bo'la olmaydi — ular DB unique-indeksining
+        # "bitta ochiq slot"ini band qilib, keyingi check-in'larni bloklab qo'yadi.
+        # DIQQAT: bu yerda `status`ni tekshiramiz (avval xato bilan `check_out`
+        # (datetime) enum bilan solishtirilardi — har doim True bo'lib, qonuniy
+        # tahrirlarni ham rad etardi).
+        if attendance.check_out is None and attendance.status not in (
+            AttendanceStatus.came,
+            AttendanceStatus.late,
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Kelmagan yoki ta'tildagi kunni ochiq (chiqishsiz) qilib bo'lmaydi. "
+                       "Avval holatni 'keldi' qiling yoki chiqish vaqtini kiriting !",
+            )
 
         # Yakuniy holatda check_out check_in'dan oldin bo'lib qolmasligini tekshiramiz
         # (qisman update natijasida ham manfiy davomiylik/pul chiqmasin).
@@ -403,3 +552,5 @@ class AttendanceService:
 
         updated = await self.repo.update(attendance)
         return self._build_info(updated, employee)
+
+    

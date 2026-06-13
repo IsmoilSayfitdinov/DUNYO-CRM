@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useLeaveRequests, useApproveLeave, useRejectLeave, RejectReasonModal } from "@/modules/leave";
+import { EmptyState } from "@/shared/ui/EmptyState";
 import {
   LeaveFiltersBar,
   LeaveStatsCards,
@@ -13,7 +14,7 @@ type LeaveStatus = "All" | "Pending" | "Approved" | "Rejected";
 const cap = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 
 export function LeaveRequests() {
-  const { data = [] } = useLeaveRequests();
+  const { data = [], isLoading, isError } = useLeaveRequests();
   const approve = useApproveLeave();
   const reject = useRejectLeave();
 
@@ -74,17 +75,25 @@ export function LeaveRequests() {
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
         <LeaveTabs tab={tab} onTabChange={setTab} pendingCount={pendingCount} />
 
-        <LeaveRequestCards
-          requests={filtered}
-          onApprove={handleApprove}
-          onReject={setRejectModeId}
-        />
+        {isLoading ? (
+          <EmptyState variant="loading" title="Yuklanmoqda…" description="Ta'til so'rovlari olinmoqda" />
+        ) : isError ? (
+          <EmptyState variant="error" title="Yuklab bo'lmadi" description="Ta'til so'rovlarini yuklab bo'lmadi. Qayta urinib ko'ring." />
+        ) : (
+          <>
+            <LeaveRequestCards
+              requests={filtered}
+              onApprove={handleApprove}
+              onReject={setRejectModeId}
+            />
 
-        <LeaveRequestsTable
-          requests={filtered}
-          onApprove={handleApprove}
-          onReject={setRejectModeId}
-        />
+            <LeaveRequestsTable
+              requests={filtered}
+              onApprove={handleApprove}
+              onReject={setRejectModeId}
+            />
+          </>
+        )}
       </div>
 
       <RejectReasonModal

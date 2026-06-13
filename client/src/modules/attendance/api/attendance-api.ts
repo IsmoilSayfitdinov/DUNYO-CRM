@@ -40,4 +40,8 @@ export const attendanceApi = {
   /** GET /attendance/report?year&month — oylik davomat hisoboti (har xodim) */
   report: (year: number, month: number) =>
     apiClient.get<AttendanceReportRow[]>("/attendance/report", { params: { year, month } }).then((r) => r.data),
+
+  /** POST /attendance/nfc — NFC kiosk (auth yo'q, ochiq endpoint) */
+  nfc: (nfc_uid: string) =>
+    apiClient.post<Attendance>("/attendance/nfc", null, { params: { nfc_uid } }).then((r) => r.data),
 };

@@ -6,21 +6,14 @@ import CustomSelect from "@/shared/ui/CustomSelect";
 import CustomDatePicker from "@/shared/ui/CustomDatePicker";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { useMyLeaveRequests, useCreateLeaveRequest } from "@/modules/leave";
-
-const LEAVE_TYPE_OPTIONS = [
-  { value: "Annual Leave", label: "Yillik mehnat ta'tili" },
-  { value: "Sick Leave", label: "Kasalik ta'tili" },
-  { value: "Personal Leave", label: "Shaxsiy sabab" },
-  { value: "Emergency Leave", label: "Favqulodda ta'til" },
-  { value: "Unpaid Leave", label: "Ish haqisiz ta'til" },
-];
+import { LEAVE_TYPE_OPTIONS, leaveTypeLabel } from "../constants/leave-types";
 
 const cap = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 const toLocalYMD = (d?: Date) =>
   d ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}` : "";
 
 export function MyLeaveRequests() {
-  const { data: myData = [] } = useMyLeaveRequests();
+  const { data: myData = [], isLoading, isError } = useMyLeaveRequests();
   const create = useCreateLeaveRequest();
 
   const [showForm, setShowForm] = useState(false);
@@ -137,7 +130,7 @@ export function MyLeaveRequests() {
                 {create.isPending ? "Yuborilmoqda…" : "So'rovni yuborish"}
               </button>
               <button type="button" onClick={() => setShowForm(false)}
-                className="flex-1 h-12 bg-slate-100 text-slate-600 font-bold rounded-2xl hover:bg-slate-700 transition-all active:scale-95">
+                className="flex-1 h-12 bg-slate-100 text-slate-600 font-bold rounded-2xl hover:bg-slate-200 transition-all active:scale-95">
                 Bekor qilish
               </button>
             </div>
@@ -150,7 +143,11 @@ export function MyLeaveRequests() {
         <div className="px-6 py-5 border-b border-slate-200/50 bg-slate-50/50">
           <h3 className="font-bold text-slate-900 tracking-tight">Mening ta'tillar tarixim</h3>
         </div>
-        {myLeave.length === 0 ? (
+        {isLoading ? (
+          <EmptyState variant="loading" size="sm" title="Yuklanmoqda…" description="Ta'til so'rovlaringiz olinmoqda" />
+        ) : isError ? (
+          <EmptyState variant="error" size="sm" title="Yuklab bo'lmadi" description="Ta'til so'rovlarini yuklab bo'lmadi. Qayta urinib ko'ring." />
+        ) : myLeave.length === 0 ? (
           <EmptyState
             icon={FileText}
             title="So'rovlar yo'q"
@@ -168,7 +165,7 @@ export function MyLeaveRequests() {
             {myLeave.map((req) => (
               <div key={req.id} className="p-3 space-y-2">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-bold text-slate-900">{req.type}</span>
+                  <span className="text-sm font-bold text-slate-900">{leaveTypeLabel(req.type)}</span>
                   <StatusBadge status={req.status as any} />
                 </div>
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
@@ -196,7 +193,7 @@ export function MyLeaveRequests() {
               <tbody className="divide-y divide-slate-200/50">
                 {myLeave.map((req) => (
                   <tr key={req.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-5 py-4 text-sm font-bold text-slate-900">{req.type}</td>
+                    <td className="px-5 py-4 text-sm font-bold text-slate-900">{leaveTypeLabel(req.type)}</td>
                     <td className="px-5 py-4 text-sm text-slate-600 font-medium whitespace-nowrap">{req.from} – {req.to}</td>
                     <td className="px-5 py-4 text-sm font-extrabold text-slate-900">{req.days} kun</td>
                     <td className="px-5 py-4 text-sm text-slate-400 max-w-[200px] truncate hidden md:table-cell">{req.reason}</td>

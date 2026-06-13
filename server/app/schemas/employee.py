@@ -35,6 +35,7 @@ class EmployeeUpdate(BaseModel):
     phone: str | None = None
 
     # Employee profile fields
+    nfc_uid: str| None = None
     is_active: bool | None = None
     leader_user_id: UUID | None = None
     branch_id: UUID | None = None
@@ -56,6 +57,7 @@ class EmployeeInfo(BaseModel):
     shift_start: time | None = None
     shift_end: time | None = None
     shift_number: int
+    nfc_uid: str| None = None
     hourly_rate: Decimal = Field(..., max_digits=10, decimal_places=2, examples=["15000.00"])
     score: int = Field(0, le=100, ge=0, examples=[100])
     created_at: datetime

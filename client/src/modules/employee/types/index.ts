@@ -16,6 +16,7 @@ export interface Employee {
   shift_end: string;
   shift_number: number;
   hourly_rate: string;
+  nfc_uid: string | null;
   score: number;
   created_at: string;
   updated_at: string;
@@ -57,4 +58,5 @@ export interface UpdateEmployeeDto {
   shift_end?: string;
   shift_number?: number;
   hourly_rate?: number;
+  nfc_uid?: string | null
 }

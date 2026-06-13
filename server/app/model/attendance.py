@@ -13,15 +13,21 @@ if TYPE_CHECKING:
 class Attendance(Base):
     __tablename__ = "attendances"
     __table_args__ = (
-        # Bir xodimda bir vaqtning o'zida faqat BITTA ochiq (check_out IS NULL)
-        # yozuv bo'lishi mumkin — bir vaqtda ikki marta check-in (race) DB
-        # darajasida bloklanadi.
+        # Bir xodimda bir vaqtning o'zida faqat BITTA ochiq smena bo'lishi mumkin —
+        # bir vaqtda ikki marta check-in (race) DB darajasida bloklanadi.
+        #
+        # DIQQAT: shart "check_out IS NULL" emas, balki "check_out IS NULL AND
+        # status IN (came, late)". Sababi: absent/leave/reason yozuvlari ham
+        # check_out=NULL bo'ladi (ular "chiqish" tushunchasiga ega emas), lekin
+        # ular OCHIQ SMENA EMAS. Agar indeks ularni ham hisoblasa, kechagi
+        # absent/leave yozuvi "bitta ochiq slot"ni band qilib, xodimning bugungi
+        # check-in'ini bloklab qo'yadi (IntegrityError -> noto'g'ri 409).
         Index(
             "uq_attendance_open_per_employee",
             "employee_id",
             unique=True,
-            postgresql_where=text("check_out IS NULL"),
-            sqlite_where=text("check_out IS NULL"),
+            postgresql_where=text("check_out IS NULL AND status IN ('came', 'late')"),
+            sqlite_where=text("check_out IS NULL AND status IN ('came', 'late')"),
         ),
     )
 

@@ -81,3 +81,12 @@ async def revoke_session(
     auth_service: AuthService = Depends(),
 ):
     await auth_service.revoke_session(user.id, session_id)
+
+
+@router.delete("/logout", status_code=status.HTTP_204_NO_CONTENT)
+async def logout(
+    payload: dict = Depends(get_access_payload),
+    user: User = Depends(get_current_user),
+    auth_service: AuthService = Depends(),
+):
+    await auth_service.logout(user.id, payload.get("jti"))

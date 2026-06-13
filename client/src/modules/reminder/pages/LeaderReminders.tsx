@@ -61,10 +61,11 @@ export function LeaderReminders() {
                         <h3 className="text-sm font-semibold text-slate-900">{r.title}</h3>
                         <button
                           onClick={() => setDeleting(r)}
-                          className="p-1.5 -mt-1 text-slate-300 hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors shrink-0"
+                          className="w-10 h-10 -mt-2 -mr-1 flex items-center justify-center text-slate-300 hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors shrink-0"
                           title="O'chirish"
+                          aria-label="Eslatmani o'chirish"
                         >
-                          <Trash2 size={15} />
+                          <Trash2 size={16} />
                         </button>
                       </div>
                       {r.message && <p className="text-xs text-slate-500 mt-1 leading-relaxed">{r.message}</p>}

@@ -16,6 +16,8 @@ export const authApi = {
     apiClient.post<LoginResponse>("/auth/login", dto).then((r) => r.data),
 
   /** Parolni o'zgartirish (joriy sessiyadan tashqari hammasi chiqariladi) */
+ 
+
   changePassword: (dto: ChangePasswordDto) =>
     apiClient.post("/auth/change-password", dto).then((r) => r.data),
 

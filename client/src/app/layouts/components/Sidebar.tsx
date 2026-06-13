@@ -28,8 +28,8 @@ export function Sidebar({
         {/* Logo */}
         <div className="flex items-center justify-between px-4 sm:px-5 pt-5 sm:pt-6 pb-4 sm:pb-5 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "#dc2626" }}>
-              <Building2 size={16} className="text-white" />
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary">
+              <Building2 size={16} className="text-primary-foreground" />
             </div>
             <div>
               <div className="text-white font-semibold text-sm leading-tight">DUNYO CRM</div>
@@ -48,11 +48,8 @@ export function Sidebar({
 
         {/* User info - inside sidebar */}
         <div className="px-4 py-3 border-b border-white/5">
-          <div className="flex items-center gap-3 p-2.5 rounded-xl" style={{ background: "rgba(220,38,38,0.08)" }}>
-            <div
-              className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
-              style={{ background: "#dc2626" }}
-            >
+          <div className="flex items-center gap-3 p-2.5 rounded-xl bg-primary/10">
+            <div className="w-9 h-9 rounded-full flex items-center justify-center bg-primary text-primary-foreground text-xs font-bold shrink-0">
               {getInitials(userName)}
             </div>
             <div className="flex-1 min-w-0">
@@ -86,21 +83,17 @@ export function Sidebar({
                 onClick={() => setSidebarOpen(false)}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 group relative ${
                   active
-                    ? "text-white"
+                    ? "text-white bg-primary/15"
                     : "text-slate-400 hover:text-white hover:bg-white/5"
                 }`}
-                style={active ? { background: "rgba(220,38,38,0.15)" } : undefined}
               >
                 {active && (
-                  <div
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r"
-                    style={{ background: "#dc2626" }}
-                  />
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r bg-primary" />
                 )}
-                <Icon size={16} style={active ? { color: "#f87171" } : undefined} />
+                <Icon size={16} className={active ? "text-red-400" : undefined} />
                 <span className="text-sm flex-1">{item.label}</span>
                 {item.badge && (
-                  <span className="text-xs rounded-full px-1.5 py-0.5 text-white" style={{ background: "#dc2626" }}>
+                  <span className="text-xs rounded-full px-1.5 py-0.5 bg-primary text-primary-foreground">
                     {item.badge}
                   </span>
                 )}

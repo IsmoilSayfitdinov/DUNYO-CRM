@@ -107,20 +107,20 @@ export function CustomDatePicker({
           </Button>
         </PopoverTrigger>
         <PopoverContent 
-          className="w-auto p-0 rounded-2xl border-slate-200 dark:border-slate-200 bg-white dark:bg-slate-50 shadow-2xl overflow-hidden" 
+          className="w-auto p-0 rounded-2xl border-slate-200 dark:border-slate-200 bg-white dark:bg-slate-50 shadow-2xl overflow-x-hidden max-h-[min(85vh,640px)] overflow-y-auto"
           align="start"
           sideOffset={8}
         >
           <div className="flex flex-col md:flex-row min-h-[340px]">
-            <div className="p-3 w-full md:w-44 bg-slate-50/50 dark:bg-white/50 border-r border-slate-200/50 dark:border-slate-200 flex flex-col gap-1">
-              <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400 px-3 py-2">
+            <div className="p-3 w-full md:w-44 bg-slate-50/50 dark:bg-white/50 border-b md:border-b-0 md:border-r border-slate-200/50 dark:border-slate-200 flex flex-row md:flex-col gap-1 overflow-x-auto md:overflow-visible">
+              <span className="hidden md:block text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400 px-3 py-2">
                 Tezkor tanlov
               </span>
               {presets.filter(p => !p.mode || p.mode === mode).map((preset) => (
                 <button
                   key={preset.label}
                   onClick={() => handlePresetClick(preset)}
-                  className="text-left px-3 py-2 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-white hover:text-primary dark:hover:bg-slate-100 dark:hover:text-primary hover:shadow-sm transition-all"
+                  className="shrink-0 whitespace-nowrap text-left px-3 py-2 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-white hover:text-primary dark:hover:bg-slate-100 dark:hover:text-primary hover:shadow-sm transition-all"
                 >
                   {preset.label}
                 </button>

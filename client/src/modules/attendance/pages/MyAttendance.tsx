@@ -4,7 +4,7 @@ import { getDaysInMonth, startOfMonth, getDay } from "date-fns";
 import { StatusBadge } from "@/shared/ui/StatusBadge";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { MonthYearPicker } from "@/shared/ui/MonthYearPicker";
-import { toHHMM } from "@/shared/utils";
+import { toHHMM, attendanceCalColor } from "@/shared/utils";
 import { useMyAttendance } from "@/modules/attendance";
 
 const STATUS_BADGE: Record<string, string> = {
@@ -12,15 +12,6 @@ const STATUS_BADGE: Record<string, string> = {
   reason: "Sababli", leave: "Ta'tilda", on_leave: "Ta'tilda",
 };
 const pad = (n: number) => String(n).padStart(2, "0");
-
-const calColor = (status?: string) => {
-  if (status === "came" || status === "left") return "bg-success text-white shadow-sm";
-  if (status === "late") return "bg-warning text-white shadow-sm";
-  if (status === "absent") return "bg-destructive text-white shadow-sm";
-  if (status === "reason") return "bg-amber-500 text-white shadow-sm";
-  if (status === "leave" || status === "on_leave") return "bg-blue-500 text-white shadow-sm";
-  return "bg-slate-50 text-slate-400 border border-slate-100";
-};
 
 export function MyAttendance() {
   const [view, setView] = useState<"calendar" | "list">("calendar");
@@ -86,12 +77,12 @@ export function MyAttendance() {
         {[
           { label: "Kelgan kunlar", value: presentDays, icon: CheckCircle, color: "var(--success)" },
           { label: "Kechikishlar", value: lateDays, icon: Clock, color: "var(--warning)" },
-          { label: "Jami soat", value: `${totalHours.toFixed(1)}h`, icon: Timer, color: "var(--primary)" },
-          { label: "Jami ishlangan", value: `${totalEarned.toLocaleString()} so'm`, icon: Coins, color: "#6366f1" },
+          { label: "Jami soat", value: `${totalHours.toFixed(1)}h`, icon: Timer, color: "#64748b" },
+          { label: "Jami ishlangan", value: `${totalEarned.toLocaleString()} so'm`, icon: Coins, color: "var(--primary)" },
         ].map((s) => {
           const Icon = s.icon;
           return (
-            <div key={s.label} className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-3 sm:p-5 shadow-sm hover:shadow-md transition-all">
+            <div key={s.label} className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-3 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: `color-mix(in srgb, ${s.color}, transparent 90%)` }}>
                 <Icon size={18} style={{ color: s.color }} />
               </div>
@@ -114,6 +105,7 @@ export function MyAttendance() {
               { label: "Kelgan", color: "bg-success" },
               { label: "Kechikkan", color: "bg-warning" },
               { label: "Kelmagan", color: "bg-destructive" },
+              { label: "Sababli", color: "bg-amber-500" },
               { label: "Ta'til", color: "bg-blue-500" },
             ].map((l) => (
               <div key={l.label} className="flex items-center gap-1.5 text-xs text-slate-500">
@@ -131,7 +123,7 @@ export function MyAttendance() {
               const rec = byDate.get(`${year}-${pad(month + 1)}-${pad(day)}`);
               return (
                 <div key={day} title={rec ? rec.badge : ""}
-                  className={`aspect-square rounded-xl flex flex-col items-center justify-center text-xs sm:text-sm font-semibold transition-all ${calColor(rec?.status)}`}>
+                  className={`aspect-square rounded-xl flex flex-col items-center justify-center text-xs sm:text-sm font-semibold transition-all ${attendanceCalColor(rec?.status)}`}>
                   <span>{day}</span>
                   {rec?.checkIn && <span className="text-[8px] sm:text-[9px] opacity-80 leading-none mt-0.5">{rec.checkIn}</span>}
                 </div>

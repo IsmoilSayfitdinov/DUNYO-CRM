@@ -20,7 +20,7 @@ export function StatsCards({ avgRate, totalLate, totalAbsent, totalPresent, rang
       {cards.map((s) => {
         const Icon = s.icon;
         return (
-          <div key={s.label} className="bg-white rounded-xl border border-slate-200 p-3 sm:p-5">
+          <div key={s.label} className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-3 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center gap-3 mb-2 sm:mb-3">
               <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `color-mix(in srgb, ${s.color}, transparent 90%)` }}>
                 <Icon size={16} style={{ color: s.color }} />

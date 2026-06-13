@@ -91,7 +91,7 @@ export function ManagerNotes({ employeeId, employeeName }: ManagerNotesProps) {
                 <button
                   onClick={() => deleteReminder.mutate(n.id)}
                   disabled={deleteReminder.isPending}
-                  className="self-start text-slate-300 hover:text-red-500 transition-colors p-1 opacity-0 group-hover:opacity-100"
+                  className="self-start p-2 -m-1 rounded-lg text-slate-400 hover:text-destructive hover:bg-destructive/10 transition-colors sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100"
                   aria-label="O'chirish"
                 >
                   <Trash2 size={15} />

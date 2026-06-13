@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Search, Download, Shield, ChevronLeft, ChevronRight } from "lucide-react";
 import { StatusBadge } from "@/shared/ui/StatusBadge";
+import { EmptyState } from "@/shared/ui/EmptyState";
 import CustomSelect from "@/shared/ui/CustomSelect";
 import CustomDatePicker from "@/shared/ui/CustomDatePicker";
 import { auditLogs } from "@/modules/audit";
@@ -46,8 +47,8 @@ export function AuditLogs() {
           <p className="text-xs sm:text-sm text-slate-400 mt-0.5">{"Tizim harakatlarining to'liq tarixi"}</p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 text-xs sm:text-sm bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-600 hover:bg-slate-50 w-full sm:w-auto justify-center">
-            <Download size={14} /> <span className="hidden sm:inline">Jurnallarni</span> {"eksport"}
+          <button className="flex items-center gap-2 text-xs sm:text-sm bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-slate-600 hover:bg-slate-50 transition-colors w-full sm:w-auto justify-center">
+            <Download size={14} /> Eksport <span className="hidden sm:inline">qilish</span>
           </button>
         </div>
       </div>
@@ -67,7 +68,7 @@ export function AuditLogs() {
         ))}
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 p-4 flex flex-wrap items-end gap-4 shadow-sm">
+      <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-4 flex flex-wrap items-end gap-4 shadow-sm">
         <div className="space-y-1.5 flex-[1.5] min-w-[250px]">
           <label className="text-sm font-medium text-slate-700 ml-1">Qidiruv</label>
           <div className="relative">
@@ -113,67 +114,88 @@ export function AuditLogs() {
       </div>
 
       {/* Audit log table */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-slate-50">
-              <tr>
-                {[
-                  "#",
-                  "Harakat",
-                  "Kim tomonidan",
-                  "Maqsad",
-                  "Usul",
-                  "Holati",
-                  "IP manzili",
-                  "Vaqt tamg'asi"
-                ].map((h) => (
-                  <th key={h} className="text-left text-xs font-semibold text-slate-400 px-5 py-3">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200/50">
-              {filtered.map((log, i) => (
-                <tr key={log.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-5 py-3.5 text-xs text-slate-400 font-mono">{String(log.id).padStart(4, "0")}</td>
-                  <td className="px-5 py-3.5">
-                    <div className="flex items-center gap-2">
-                      <Shield size={14} className={log.status === "Warning" ? "text-warning" : log.status === "Failed" ? "text-destructive" : "text-slate-400"} />
-                      <span className="text-sm font-bold text-slate-800">{log.action}</span>
+      <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 overflow-hidden">
+        {filtered.length === 0 ? (
+          <EmptyState size="sm" icon={Shield} title="Yozuv topilmadi" description="Qidiruv va filtrlarga mos audit yozuvi yo'q." />
+        ) : (
+          <>
+            {/* Mobile card list */}
+            <div className="sm:hidden divide-y divide-slate-200/60">
+              {filtered.map((log) => (
+                <div key={log.id} className="p-3.5 space-y-1.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Shield size={14} className={`shrink-0 ${log.status === "Warning" ? "text-warning" : log.status === "Failed" ? "text-destructive" : "text-slate-400"}`} />
+                      <span className="text-sm font-bold text-slate-800 truncate">{log.action}</span>
                     </div>
-                  </td>
-                  <td className="px-5 py-3.5 text-sm text-slate-600">{log.user}</td>
-                  <td className="px-5 py-3.5 text-sm text-slate-600">{log.target}</td>
-                  <td className="px-5 py-3.5">
-                    <StatusBadge status={log.method as any} showDot={false} />
-                  </td>
-                  <td className="px-5 py-3.5">
                     <StatusBadge status={log.status as any} />
-                  </td>
-                  <td className="px-5 py-3.5 text-xs font-mono text-slate-400">{log.ip}</td>
-                  <td className="px-5 py-3.5 text-xs text-slate-400">{log.timestamp}</td>
-                </tr>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs text-slate-600 truncate">{log.user}</span>
+                    <span className="text-xs text-slate-400 shrink-0">{log.timestamp}</span>
+                  </div>
+                </div>
               ))}
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={8} className="py-16 text-center text-sm text-slate-400">{"Qidiruvingizga mos audit jurnallari topilmadi."}</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+            </div>
+
+            {/* Desktop table */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-slate-50">
+                  <tr>
+                    {[
+                      { h: "#", cls: "hidden md:table-cell" },
+                      { h: "Harakat", cls: "" },
+                      { h: "Kim tomonidan", cls: "" },
+                      { h: "Maqsad", cls: "hidden lg:table-cell" },
+                      { h: "Usul", cls: "" },
+                      { h: "Holati", cls: "" },
+                      { h: "IP manzili", cls: "hidden md:table-cell" },
+                      { h: "Vaqt tamg'asi", cls: "" },
+                    ].map(({ h, cls }) => (
+                      <th key={h} className={`text-left text-xs font-semibold text-slate-400 px-5 py-3 ${cls}`}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200/50">
+                  {filtered.map((log) => (
+                    <tr key={log.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="hidden md:table-cell px-5 py-3.5 text-xs text-slate-400 font-mono">{String(log.id).padStart(4, "0")}</td>
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-2">
+                          <Shield size={14} className={log.status === "Warning" ? "text-warning" : log.status === "Failed" ? "text-destructive" : "text-slate-400"} />
+                          <span className="text-sm font-bold text-slate-800">{log.action}</span>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3.5 text-sm text-slate-600">{log.user}</td>
+                      <td className="hidden lg:table-cell px-5 py-3.5 text-sm text-slate-600">{log.target}</td>
+                      <td className="px-5 py-3.5">
+                        <StatusBadge status={log.method as any} showDot={false} />
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <StatusBadge status={log.status as any} />
+                      </td>
+                      <td className="hidden md:table-cell px-5 py-3.5 text-xs font-mono text-slate-400">{log.ip}</td>
+                      <td className="px-5 py-3.5 text-xs text-slate-400">{log.timestamp}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
 
         {/* Pagination */}
         <div className="flex items-center justify-between gap-2 px-3 sm:px-5 py-3 border-t border-slate-200/50 bg-slate-50">
           <span className="text-xs text-slate-400 min-w-0 truncate">{`${filtered.length} natija ko'rsatilmoqda`}</span>
           <div className="flex items-center gap-2 shrink-0">
-            <button className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-white transition-all shadow-sm">
+            <button aria-label="Oldingi sahifa" className="w-10 h-10 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-white transition-all shadow-sm">
               <ChevronLeft size={14} />
             </button>
             {[1, 2, 3].map((p) => (
-              <button key={p} className={`w-8 h-8 rounded-lg text-xs font-bold transition-all shadow-sm ${p === 1 ? "bg-primary text-primary-foreground" : "border border-slate-200 text-slate-400 hover:bg-white"}`}>{p}</button>
+              <button key={p} className={`w-10 h-10 rounded-lg text-xs font-bold transition-all shadow-sm ${p === 1 ? "bg-primary text-primary-foreground" : "border border-slate-200 text-slate-400 hover:bg-white"}`}>{p}</button>
             ))}
-            <button className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-white transition-all shadow-sm">
+            <button aria-label="Keyingi sahifa" className="w-10 h-10 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-white transition-all shadow-sm">
               <ChevronRight size={14} />
             </button>
           </div>

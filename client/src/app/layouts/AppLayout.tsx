@@ -66,12 +66,12 @@ export function AppLayout({ role }: AppLayoutProps) {
   // Ism ostidagi yordamchi matn: @username yoki telefon
   const userSubtitle = user?.username ? `@${user.username}` : user?.phone ?? "";
 
-  const handleLogout = () => {
-    logout();        // token tozalanadi + auth holati nolga tushadi
+  const handleLogout = async () => {
+    await logout();        // token tozalanadi + auth holati nolga tushadi
     navigate("/");
   };
 
-  // Bottom nav: first 4 items + "more" for mobile
+  // Bottom nav: first 4 items + "more" for mobile  
   const bottomNavItems = cfg.nav.slice(0, 4);
   const moreItems = cfg.nav.slice(4);
 

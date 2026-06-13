@@ -52,7 +52,7 @@ class Employee(Base):
         default=Decimal("12000.00"),
         nullable=False
     )
-    
+    nfc_uid: Mapped[str | None] = mapped_column(default=None)
     user: Mapped["User"] = relationship(back_populates="employee")
     leader: Mapped["Leader"] = relationship(back_populates="employee")
     branch: Mapped["Branch | None"] = relationship(back_populates="employees")

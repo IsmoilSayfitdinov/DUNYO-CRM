@@ -4,6 +4,7 @@ export { employeeApi } from "./api/employee-api";
 export { employeeKeys } from "./api/query-keys";
 export { useEmployees, useMyEmployee, useEmployee } from "./hooks/use-employee-queries";
 export { AddEditEmployeeModal } from "./components/AddEditEmployeeModal";
+export { NfcEnrollModal } from "./components/NfcEnrollModal";
 export { useSaveEmployee } from "./hooks/use-save-employee";
 export { useDeleteEmployee } from "./hooks/use-delete-employee";
 export { useSetEmployeeActive } from "./hooks/use-set-active";

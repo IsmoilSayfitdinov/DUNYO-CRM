@@ -179,9 +179,9 @@ export function Login() {
 
             {/* Error */}
             {(error || errors.username || errors.password) && (
-              <div className="mb-5 rounded-xl p-3.5 flex items-start gap-3 bg-red-50 border border-red-100 animate-in fade-in slide-in-from-top-1 duration-300">
-                <AlertCircle size={17} className="text-primary shrink-0 mt-0.5" />
-                <div className="text-[13px] text-red-600 font-medium space-y-0.5">
+              <div className="mb-5 rounded-xl p-3.5 flex items-start gap-3 bg-destructive/5 border border-destructive/20 animate-in fade-in slide-in-from-top-1 duration-300">
+                <AlertCircle size={17} className="text-destructive shrink-0 mt-0.5" />
+                <div className="text-[13px] text-destructive font-medium space-y-0.5">
                   {error && <p>{error}</p>}
                   {errors.username && <p>{errors.username.message}</p>}
                   {errors.password && <p>{errors.password.message}</p>}
@@ -192,15 +192,16 @@ export function Login() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {/* Username */}
               <div className="space-y-1.5" style={rise(0.48)}>
-                <label className="text-[13px] font-semibold text-slate-500 block ml-0.5">Foydalanuvchi nomi</label>
+                <label htmlFor="login-username" className="text-[13px] font-semibold text-slate-500 block ml-0.5">Foydalanuvchi nomi</label>
                 <div className="group relative rounded-xl border-2 border-slate-100 bg-slate-50/70 focus-within:border-primary focus-within:bg-white focus-within:shadow-sm transition-all duration-200">
-                  <User size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors" />
+                  <User size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors" />
                   <input
                     {...register("username")}
+                    id="login-username"
                     type="text"
                     autoComplete="username"
                     placeholder="Masalan: ismoil"
-                    className="w-full pl-11 pr-4 py-3.5 bg-transparent text-slate-800 placeholder:text-slate-300 focus:outline-none text-[15px] rounded-xl"
+                    className="w-full pl-11 pr-4 py-3.5 bg-transparent text-slate-800 placeholder:text-slate-400 focus:outline-none text-[15px] rounded-xl"
                     style={{ caretColor: "#dc2626" }}
                   />
                 </div>
@@ -208,21 +209,20 @@ export function Login() {
 
               {/* Password */}
               <div className="space-y-1.5" style={rise(0.56)}>
-                <div className="flex items-center justify-between ml-0.5">
-                  <label className="text-[13px] font-semibold text-slate-500">Parol</label>
-                  <button type="button" className="text-[12px] font-semibold text-primary hover:opacity-70 transition-opacity">Unutdingizmi?</button>
-                </div>
+                <label htmlFor="login-password" className="text-[13px] font-semibold text-slate-500 block ml-0.5">Parol</label>
                 <div className="group relative rounded-xl border-2 border-slate-100 bg-slate-50/70 focus-within:border-primary focus-within:bg-white focus-within:shadow-sm transition-all duration-200">
-                  <Lock size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors" />
+                  <Lock size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors" />
                   <input
                     {...register("password")}
+                    id="login-password"
                     type={showPassword ? "text" : "password"}
                     placeholder="Parolni kiriting"
-                    className="w-full pl-11 pr-12 py-3.5 bg-transparent text-slate-800 placeholder:text-slate-300 focus:outline-none text-[15px] rounded-xl"
+                    className="w-full pl-11 pr-12 py-3.5 bg-transparent text-slate-800 placeholder:text-slate-400 focus:outline-none text-[15px] rounded-xl"
                     style={{ caretColor: "#dc2626" }}
                   />
                   <button type="button" onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors">
+                    aria-label={showPassword ? "Parolni yashirish" : "Parolni ko'rsatish"}
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 p-2.5 rounded-lg text-slate-400 hover:text-slate-500 transition-colors">
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>

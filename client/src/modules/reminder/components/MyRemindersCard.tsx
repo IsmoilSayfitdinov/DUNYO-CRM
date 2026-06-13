@@ -1,5 +1,6 @@
 import { Bell, AlertTriangle, Check, Clock } from "lucide-react";
 import { EmptyState } from "@/shared/ui/EmptyState";
+import { Skeleton } from "@/shared/ui/skeleton";
 import { useMyReminders, useMarkReminderRead } from "../hooks/use-reminders";
 
 const fmt = (iso: string) =>
@@ -10,7 +11,14 @@ export function MyRemindersCard() {
   const { data: reminders = [], isLoading } = useMyReminders();
   const markRead = useMarkReminderRead();
 
-  if (isLoading) return null;
+  if (isLoading) {
+    return (
+      <div className="bg-white rounded-xl border border-slate-200 p-3 sm:p-5 space-y-3">
+        <Skeleton className="h-5 w-40" />
+        <Skeleton className="h-16 w-full rounded-xl" />
+      </div>
+    );
+  }
   if (reminders.length === 0) return null;
 
   const unread = reminders.filter((r) => !r.is_read).length;
@@ -21,7 +29,7 @@ export function MyRemindersCard() {
         <h3 className="font-semibold text-slate-900 flex items-center gap-2">
           Rahbar eslatmalari
           {unread > 0 && (
-            <span className="text-[11px] bg-amber-50 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-full">{unread} ta yangi</span>
+            <span className="text-[11px] bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full">{unread} ta yangi</span>
           )}
         </h3>
       </div>

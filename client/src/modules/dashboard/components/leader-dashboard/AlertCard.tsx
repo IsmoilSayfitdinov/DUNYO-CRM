@@ -13,7 +13,7 @@ export function AlertCard({ severity, title, desc }: { severity: string; title: 
       <div className={`w-2.5 h-2.5 rounded-full ${cfg.dot} mt-1.5 shrink-0`} />
       <div>
         <div className={`text-sm font-bold ${cfg.text}`}>{title}</div>
-        <div className="text-xs text-gray-400 font-medium mt-1 leading-relaxed">{desc}</div>
+        <div className="text-xs text-slate-400 font-medium mt-1 leading-relaxed">{desc}</div>
       </div>
     </div>
   );

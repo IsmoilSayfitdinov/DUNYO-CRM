@@ -27,6 +27,14 @@ class EmployeeRepository:
         )
         return await self.database.scalar(query)
 
+    async def get_by_nfc_uid(self, nfc_uid: str) -> Employee | None:
+        query = (
+            select(Employee)
+            .where(Employee.nfc_uid == nfc_uid)
+        )
+        return await self.database.scalar(query)
+
+    
     async def get_by_user_id(self, user_id: UUID) -> Employee | None:
         query = (
             select(Employee)

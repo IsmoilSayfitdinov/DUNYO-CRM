@@ -1,6 +1,7 @@
-import { Monitor, CheckCircle, Loader2 } from "lucide-react";
+import { Monitor, CheckCircle } from "lucide-react";
 import { useSessions, useRevokeSession } from "@/modules/auth";
 import { EmptyState } from "@/shared/ui/EmptyState";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 function relTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -18,8 +19,19 @@ export function SessionsList() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-6 text-slate-400">
-        <Loader2 size={18} className="animate-spin" />
+      <div className="space-y-3">
+        {[0, 1].map((i) => (
+          <div key={i} className="flex items-center justify-between gap-3 p-3 sm:p-4 rounded-xl border border-slate-200/50">
+            <div className="flex items-center gap-3">
+              <Skeleton className="w-4 h-4 rounded" />
+              <div className="space-y-1.5">
+                <Skeleton className="h-4 w-36" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+            </div>
+            <Skeleton className="h-5 w-14 rounded-full" />
+          </div>
+        ))}
       </div>
     );
   }
@@ -56,7 +68,7 @@ export function SessionsList() {
             <button
               onClick={() => revoke.mutate(s.id)}
               disabled={revoke.isPending}
-              className="shrink-0 min-h-[40px] inline-flex items-center text-xs text-red-500 hover:text-red-700 transition-colors px-2 -mr-2 disabled:opacity-50"
+              className="shrink-0 min-h-[40px] inline-flex items-center text-xs text-destructive hover:text-destructive/80 transition-colors px-2 -mr-2 disabled:opacity-50"
             >
               Yakunlash
             </button>

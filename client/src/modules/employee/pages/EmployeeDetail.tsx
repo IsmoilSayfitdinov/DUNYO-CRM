@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { toHHMM, ATTENDANCE_BADGE, STATUS_TO_BACKEND } from "@/shared/utils";
-import { useEmployee, AddEditEmployeeModal, useSaveEmployee, useSetEmployeeActive } from "@/modules/employee";
+import { Nfc } from "lucide-react";
+import { useEmployee, AddEditEmployeeModal, NfcEnrollModal, useSaveEmployee, useSetEmployeeActive } from "@/modules/employee";
 import { useEmployeeAttendance, EditAttendanceModal, useUpdateAttendance } from "@/modules/attendance";
 import { useEmployeeSalary, useCalculateSalary, usePaySalary, useAdjustSalary, SalaryAdjustmentModal } from "@/modules/salary";
 import {
@@ -30,8 +31,9 @@ export function EmployeeDetail() {
   const { data: salaryData } = useEmployeeSalary(id, { limit: 24 });
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [nfcOpen, setNfcOpen] = useState(false); // NFC enroll modali ochiq/yopiq
   const [editRecord, setEditRecord] = useState<any>(null);
-
+  
   const saveEmployee = useSaveEmployee(id);
   const setActive = useSetEmployeeActive();
   const updateAttendance = useUpdateAttendance(editRecord?.id ?? "");
@@ -40,7 +42,7 @@ export function EmployeeDetail() {
   const adjustSalary = useAdjustSalary();
   const [adjustTarget, setAdjustTarget] = useState<{ salaryId: string; name: string } | null>(null);
 
-  useEffect(() => { setEditRecord(null); setModalOpen(false); }, [id]);
+  useEffect(() => { setEditRecord(null); setModalOpen(false); setNfcOpen(false); }, [id]);
 
   if (isLoading) {
     return <EmptyState variant="loading" title="Yuklanmoqda…" description="Xodim ma'lumotlari olinmoqda" />;
@@ -90,10 +92,6 @@ export function EmployeeDetail() {
 
   const handleSaveAttendance = (updated: any) => {
     if (!editRecord) return;
-    // Vaqt kiritilmagan bo'lsa null yuboramiz (undefined emas) — shunda backend
-    // mavjud vaqtni tozalaydi, aks holda PATCH'da maydon tushib qolib eski qiymat saqlanardi.
-    // Foydalanuvchi MAHALLIY vaqt kiritadi; uni timezone'li to'liq ISO-8601 (UTC)
-    // ga aylantirib yuboramiz, aks holda backend noaniq instant sifatida saqlaydi.
     const toDate = (t: string): Date | null => {
       if (!t) return null;
       const d = new Date(`${editRecord.work_date}T${t}:00`);
@@ -101,8 +99,6 @@ export function EmployeeDetail() {
     };
     const checkIn = toDate(updated.checkIn);
     let checkOut = toDate(updated.checkOut);
-    // TUNGI SMENA: chiqish kirishdan oldin bo'lsa (masalan 16:00 -> 00:00),
-    // chiqish KEYINGI kunга o'tadi. Aks holda backend manfiy davomiylik deb 400 berardi.
     if (checkIn && checkOut && checkOut.getTime() < checkIn.getTime()) {
       checkOut = new Date(checkOut.getTime() + 24 * 60 * 60 * 1000);
     }
@@ -119,11 +115,19 @@ export function EmployeeDetail() {
 
   return (
     <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-slate-400 mb-2">
-        <button onClick={() => navigate("/leader/staff")} className="hover:text-slate-700 transition-colors">Xodimlar</button>
-        <span className="text-slate-600">/</span>
-        <span className="text-slate-900 font-medium">{fullName}</span>
+      {/* Breadcrumb + NFC tugmasi (vaqtincha shu yerda — keyin chiroyli joyga ko'chiriladi) */}
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <div className="flex items-center gap-2 text-sm text-slate-400">
+          <button onClick={() => navigate("/leader/staff")} className="hover:text-slate-700 transition-colors">Xodimlar</button>
+          <span className="text-slate-600">/</span>
+          <span className="text-slate-900 font-medium">{fullName}</span>
+        </div>
+        <button
+          onClick={() => setNfcOpen(true)}
+          className="shrink-0 inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-primary to-red-700 text-white text-sm font-semibold shadow-lg shadow-primary/20 hover:opacity-95 transition-all active:scale-[0.98]"
+        >
+          <Nfc size={16} /> NFC karta
+        </button>
       </div>
 
       <EmployeeProfileHeader
@@ -166,6 +170,16 @@ export function EmployeeDetail() {
         isSaving={saveEmployee.isPending}
       />
       <EditAttendanceModal open={!!editRecord} record={editRecord} onClose={() => setEditRecord(null)} onSave={handleSaveAttendance} />
+
+      {/* NFC karta biriktirish modali. currentUid hozircha bo'sh — backend tayyor bo'lgach
+          emp.nfc_uid'ni shu yerga uzatasan. Logika (o'qish/saqlash) modal ichida TODO(sen). */}
+      <NfcEnrollModal
+        open={nfcOpen}
+        onClose={() => setNfcOpen(false)}
+        employeeName={fullName}
+        currentUid={emp?.nfc_uid}
+        employeeId={id}
+      />
 
       <SalaryAdjustmentModal
         open={!!adjustTarget}

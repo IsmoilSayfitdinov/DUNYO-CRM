@@ -1,10 +1,7 @@
-export const RED = "#dc2626";
-export const RED_LIGHT = "#fef2f2";
-
-export const activityIcon: Record<string, { color: string; bg: string }> = {
-  manual:   { color: "#64748b", bg: "#f1f5f9" },
-  alert:    { color: "#dc2626", bg: "#fef2f2" },
-  approval: { color: "#16a34a", bg: "#f0fdf4" },
-  checkin:  { color: "#dc2626", bg: "#fef2f2" },
-  payroll:  { color: "#d97706", bg: "#fffbeb" },
+export const activityIcon: Record<string, { text: string; bg: string }> = {
+  manual:   { text: "text-slate-500", bg: "bg-slate-100" },
+  alert:    { text: "text-primary",   bg: "bg-primary/10" },
+  approval: { text: "text-success",   bg: "bg-emerald-50" },
+  checkin:  { text: "text-primary",   bg: "bg-primary/10" },
+  payroll:  { text: "text-warning",   bg: "bg-amber-50" },
 };

@@ -32,7 +32,7 @@ export function SalaryHistoryCard({ salaryData, onAdjustBonus }: Props) {
         {rows.length === 0 ? (
           <EmptyState size="sm" icon={DollarSign} title="Ish haqi yo'q" description="Bu xodim uchun hisoblangan ish haqi mavjud emas." />
         ) : rows.map((s) => (
-          <div key={s.id} className={`flex items-center justify-between gap-3 p-2.5 rounded-xl border ${s.isPaid ? " border-green-100 bg-green-50/100" : " border-orange-100 bg-orange-50/100"} hover:bg-white hover:shadow-sm transition-all`}>
+          <div key={s.id} className={`flex items-center justify-between gap-3 p-2.5 rounded-xl border ${s.isPaid ? "border-emerald-100 bg-emerald-50" : "border-amber-100 bg-amber-50"} hover:shadow-sm transition-all`}>
             <div className="flex items-center gap-3 min-w-0">
               <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${s.isPaid ? "bg-success/10 text-success" : "bg-amber-100 text-amber-600"}`}>
                 <Wallet size={16} />
@@ -47,20 +47,19 @@ export function SalaryHistoryCard({ salaryData, onAdjustBonus }: Props) {
             </div>
             <div className="flex flex-col items-end gap-1 shrink-0">
               <span className="text-sm font-black text-slate-900">{M(s.total)}M <span className="text-[10px] font-bold text-slate-400">UZS</span></span>
-              <span className={`text-[9px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider ${s.isPaid ? "bg-success/10 text-success border border-success/20" : "bg-amber-100 text-amber-700 border border-amber-200"}`}>
+              <span className={`text-[9px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider ${s.isPaid ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-amber-50 text-amber-700 border border-amber-200"}`}>
                 {s.isPaid ? "To'langan" : "Kutilmoqda"}
               </span>
               {!s.isPaid && onAdjustBonus && (
                 <button
                   onClick={() => onAdjustBonus(s.id)}
-                  className="mt-0.5 inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 hover:text-emerald-700 transition-colors"
+                  className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-bold text-success px-2.5 py-1.5 -mr-1 rounded-lg hover:bg-success/10 active:bg-success/15 transition-colors"
                 >
                   <Award size={11} /> Premiya
                 </button>
               )}
             </div>
           </div>
-                
         ))}
       </div>
     </div>

@@ -74,15 +74,15 @@ export function BranchFormModal({ open, onClose, branch }: { open: boolean; onCl
             </div>
             <h3 className="text-base font-semibold text-slate-900">{isEdit ? "Filialni tahrirlash" : "Yangi filial qo'shish"}</h3>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all">
+          <button onClick={onClose} aria-label="Yopish" className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all">
             <X size={16} />
           </button>
         </div>
 
         <div className="p-4 sm:p-6 space-y-4 max-h-[75vh] overflow-y-auto">
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-600 flex items-center gap-1.5"><Building2 size={12} className="text-slate-400" /> Filial nomi *</label>
-            <input value={name} onChange={(e) => setName(e.target.value)} className={inputCls} placeholder="Masalan: Chilonzor filiali" />
+            <label htmlFor="branch-name" className="text-xs font-semibold text-slate-600 flex items-center gap-1.5"><Building2 size={12} className="text-slate-400" /> Filial nomi *</label>
+            <input id="branch-name" value={name} onChange={(e) => setName(e.target.value)} className={inputCls} placeholder="Masalan: Chilonzor filiali" />
           </div>
 
           {/* Lokatsiya — xarita */}
@@ -105,20 +105,20 @@ export function BranchFormModal({ open, onClose, branch }: { open: boolean; onCl
             <p className="text-[11px] text-slate-400">Xaritada bosing yoki qizil belgini suring. Qizil doira — ruxsat radiusi.</p>
 
             <div className="grid grid-cols-2 gap-3">
-              <input value={lat} onChange={(e) => setLat(e.target.value)} inputMode="decimal" className={inputCls} placeholder="Kenglik (lat)" />
-              <input value={lng} onChange={(e) => setLng(e.target.value)} inputMode="decimal" className={inputCls} placeholder="Uzunlik (lng)" />
+              <input value={lat} onChange={(e) => setLat(e.target.value)} inputMode="decimal" aria-label="Kenglik (lat)" className={inputCls} placeholder="Kenglik (lat)" />
+              <input value={lng} onChange={(e) => setLng(e.target.value)} inputMode="decimal" aria-label="Uzunlik (lng)" className={inputCls} placeholder="Uzunlik (lng)" />
             </div>
             {geoErr && (
-              <p className="text-xs text-red-500 flex items-center gap-1.5"><AlertCircle size={12} /> {geoErr}</p>
+              <p className="text-xs text-destructive flex items-center gap-1.5"><AlertCircle size={12} /> {geoErr}</p>
             )}
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-600 flex items-center gap-1.5"><Ruler size={12} className="text-slate-400" /> Ruxsat radiusi (metr) *</label>
-            <input value={radius} onChange={(e) => setRadius(e.target.value.replace(/\D/g, ""))} inputMode="numeric" className={inputCls} placeholder="150" />
+            <label htmlFor="branch-radius" className="text-xs font-semibold text-slate-600 flex items-center gap-1.5"><Ruler size={12} className="text-slate-400" /> Ruxsat radiusi (metr) *</label>
+            <input id="branch-radius" value={radius} onChange={(e) => setRadius(e.target.value.replace(/\D/g, ""))} inputMode="numeric" className={inputCls} placeholder="150" />
             <p className="text-[11px] text-slate-400">Doira xaritada shu radiusni ko'rsatadi — xodim shu doira ichida bo'lsa, davomat qabul qilinadi.</p>
             {radius && !radiusOk && (
-              <p className="text-xs text-red-500 flex items-center gap-1.5"><AlertCircle size={12} /> Radius 10–5000 metr oralig'ida bo'lsin</p>
+              <p className="text-xs text-destructive flex items-center gap-1.5"><AlertCircle size={12} /> Radius 10–5000 metr oralig'ida bo'lsin</p>
             )}
           </div>
         </div>

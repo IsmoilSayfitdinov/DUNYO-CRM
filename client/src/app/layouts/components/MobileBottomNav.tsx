@@ -28,27 +28,26 @@ export function MobileBottomNav({
               className="flex-1 flex flex-col items-center justify-center py-2 pt-2.5 pb-2 gap-0.5 relative transition-all"
             >
               <div className={`relative flex items-center justify-center w-10 h-7 rounded-2xl transition-all duration-200 ${
-                active ? "bg-red-50" : ""
+                active ? "bg-primary/10" : ""
               }`}>
                 <Icon
                   size={20}
-                  style={{ color: active ? "#dc2626" : "#94a3b8" }}
+                  className={active ? "text-primary" : "text-slate-400"}
                   strokeWidth={active ? 2.5 : 1.8}
                 />
                 {item.badge && (
-                  <span className="absolute -top-1 -right-1 text-[9px] rounded-full w-4 h-4 flex items-center justify-center text-white font-bold"
-                        style={{ background: "#dc2626" }}>
-                    {item.badge}
+                  <span className="absolute -top-1 -right-1 text-[9px] rounded-full min-w-4 h-4 px-1 flex items-center justify-center bg-primary text-primary-foreground font-bold">
+                    {item.badge > 9 ? "9+" : item.badge}
                   </span>
                 )}
               </div>
               <span className={`text-[10px] font-semibold leading-tight text-center ${
-                active ? "text-red-600" : "text-slate-400"
+                active ? "text-primary" : "text-slate-400"
               }`}>
                 {item.label.length > 10 ? item.label.slice(0, 9) + "…" : item.label}
               </span>
               {active && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-b-full bg-red-500" />
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-b-full bg-primary" />
               )}
             </NavLink>
           );
@@ -61,21 +60,21 @@ export function MobileBottomNav({
             className="flex-1 flex flex-col items-center justify-center py-2 pt-2.5 pb-2 gap-0.5 relative transition-all"
           >
             <div className={`relative flex items-center justify-center w-10 h-7 rounded-2xl transition-all duration-200 ${
-              moreOpen || moreItems.some(isActive) ? "bg-red-50" : ""
+              moreOpen || moreItems.some(isActive) ? "bg-primary/10" : ""
             }`}>
               <Menu
                 size={20}
-                style={{ color: (moreOpen || moreItems.some(isActive)) ? "#dc2626" : "#94a3b8" }}
+                className={(moreOpen || moreItems.some(isActive)) ? "text-primary" : "text-slate-400"}
                 strokeWidth={1.8}
               />
             </div>
             <span className={`text-[10px] font-semibold leading-tight ${
-              moreOpen || moreItems.some(isActive) ? "text-red-600" : "text-slate-400"
+              moreOpen || moreItems.some(isActive) ? "text-primary" : "text-slate-400"
             }`}>
               Ko'proq
             </span>
             {moreItems.some(isActive) && (
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-b-full bg-red-500" />
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-b-full bg-primary" />
             )}
           </button>
         )}

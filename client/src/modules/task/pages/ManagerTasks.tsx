@@ -60,13 +60,13 @@ export function ManagerTasks() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         {[
-          { label: "Bajarilmagan", value: counts.todo, color: "var(--muted-foreground, #94a3b8)" },
-          { label: "Jarayonda", value: counts.in_progress, color: "var(--warning)" },
-          { label: "Bajarildi", value: counts.done, color: "var(--success)" },
-          { label: "Muddati o'tgan", value: counts.overdue, color: "var(--destructive)" },
+          { label: "Bajarilmagan", value: counts.todo, cls: "text-muted-foreground" },
+          { label: "Jarayonda", value: counts.in_progress, cls: "text-warning" },
+          { label: "Bajarildi", value: counts.done, cls: "text-success" },
+          { label: "Muddati o'tgan", value: counts.overdue, cls: "text-destructive" },
         ].map((s) => (
           <div key={s.label} className="bg-white border border-slate-200 rounded-xl sm:rounded-2xl p-3 sm:p-5">
-            <div className="text-xl sm:text-3xl font-black mb-1 tracking-tight" style={{ color: s.color }}>{s.value}</div>
+            <div className={`text-xl sm:text-3xl font-black mb-1 tracking-tight ${s.cls}`}>{s.value}</div>
             <div className="text-xs font-bold uppercase tracking-widest text-slate-400">{s.label}</div>
           </div>
         ))}
@@ -105,11 +105,12 @@ export function ManagerTasks() {
                       onClick={() => setDeleting(t)}
                       className="w-10 h-10 flex items-center justify-center text-slate-300 hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors shrink-0"
                       title="O'chirish"
+                      aria-label="Vazifani o'chirish"
                     >
                       <Trash2 size={16} />
                     </button>
                   </div>
-                  {t.description && <p className="text-xs text-slate-400 mb-2.5 leading-relaxed">{t.description}</p>}
+                  {t.description && <p className="text-xs text-slate-500 mb-2.5 leading-relaxed">{t.description}</p>}
                   <div className="flex items-center flex-wrap gap-2">
                     <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${STATUS_STYLE[t.status]}`}>{STATUS_LABEL[t.status]}</span>
                     <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${PRIORITY_STYLE[t.priority]}`}>{PRIORITY_LABEL[t.priority]}</span>

@@ -15,11 +15,11 @@ export function SalaryTrendChart() {
   const unpaidCount = summary?.unpaid_count ?? 0;
 
   return (
-    <div className="lg:col-span-2 bg-white rounded-xl sm:rounded-2xl border border-gray-100 p-4 sm:p-6">
+    <div className="lg:col-span-2 bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-4 sm:p-6">
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h3 className="text-sm sm:text-base font-bold text-gray-900">Joriy oy ish haqi</h3>
-          <p className="text-[10px] sm:text-xs text-gray-400 mt-0.5">Umumiy hisoblangan · UZS</p>
+          <h3 className="text-sm sm:text-base font-bold text-slate-900">Joriy oy ish haqi</h3>
+          <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5">Umumiy hisoblangan · UZS</p>
         </div>
         <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
           <DollarSign size={20} className="text-primary" />

@@ -1,7 +1,12 @@
 import { Plus, ChevronLeft, ChevronRight, Users } from "lucide-react";
 import { ScoreRing } from "@/shared/ui/ScoreRing";
 import { EmptyState } from "@/shared/ui/EmptyState";
+import { Skeleton } from "@/shared/ui/skeleton";
 import { RowMenu } from "./RowMenu";
+
+// Rang xodim id'sidan olinadi — filtr/sahifa o'zgarsa ham bir xil qoladi
+// va EmployeeProfileHeader'dagi hueFromId bilan mos tushadi.
+const hueFromId = (s: string) => [...s].reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
 
 export function EmployeeTable({
   isLoading,
@@ -18,30 +23,39 @@ export function EmployeeTable({
   onToggleActive,
   onDelete,
 }: any) {
-  const colorOf = (i: number) => `hsl(${(((page - 1) * pageSize + i) * 53) % 360}, 65%, 55%)`;
-
   return (
     <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
       {/* ===== MOBIL: kartalar (<640px) ===== */}
       <div className="sm:hidden divide-y divide-slate-200/60">
         {isLoading ? (
-          <EmptyState variant="loading" title="Yuklanmoqda…" description="Xodimlar serverdan olinmoqda" />
+          Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="p-3.5">
+              <div className="flex items-start gap-3">
+                <Skeleton className="w-11 h-11 rounded-full shrink-0" />
+                <div className="flex-1 min-w-0 space-y-2">
+                  <Skeleton className="h-4 w-36" />
+                  <Skeleton className="h-3 w-24" />
+                  <Skeleton className="h-3 w-48" />
+                </div>
+              </div>
+            </div>
+          ))
         ) : isError ? (
           <EmptyState variant="error" title="Yuklab bo'lmadi" description="Server bilan bog'lanishda xatolik. Backend ishlayaptimi?" />
         ) : paginated.length === 0 ? (
           <EmptyState icon={Users} title="Xodimlar topilmadi" description="Qidiruv yoki filtrni o'zgartiring, yoki yangi xodim qo'shing."
             action={<button onClick={onAdd} className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20"><Plus size={16} /> Xodim qo'shish</button>} />
         ) : (
-          paginated.map((emp: any, i: number) => (
+          paginated.map((emp: any) => (
             <div key={emp.id} className="p-3.5 active:bg-slate-50 transition-colors">
               <div className="flex items-start gap-3">
                 <div className="w-11 h-11 rounded-full flex items-center justify-center text-white text-sm font-semibold shrink-0"
-                  style={{ background: colorOf(i) }}>
+                  style={{ background: `hsl(${hueFromId(emp.id)}, 65%, 55%)` }}>
                   {emp.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
-                    <div className="min-w-0">
+                    <div className="min-w-0 cursor-pointer" onClick={() => onView(emp)}>
                       <div className="text-sm font-semibold text-slate-800 truncate">{emp.name}</div>
                       <div className="text-xs text-slate-400 truncate">@{emp.username}</div>
                     </div>
@@ -92,7 +106,17 @@ export function EmployeeTable({
           </thead>
           <tbody className="divide-y divide-slate-200/50">
             {isLoading ? (
-              <tr><td colSpan={8}><EmptyState variant="loading" title="Yuklanmoqda…" description="Xodimlar serverdan olinmoqda" /></td></tr>
+              Array.from({ length: 6 }).map((_, i) => (
+                <tr key={i}>
+                  <td className="px-5 py-3" colSpan={8}>
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="w-9 h-9 rounded-full shrink-0" />
+                      <Skeleton className="h-4 w-40" />
+                      <Skeleton className="h-4 w-24 ml-auto" />
+                    </div>
+                  </td>
+                </tr>
+              ))
             ) : isError ? (
               <tr><td colSpan={8}><EmptyState variant="error" title="Yuklab bo'lmadi" description="Server bilan bog'lanishda xatolik. Backend ishlayaptimi?" /></td></tr>
             ) : paginated.length === 0 ? (
@@ -110,12 +134,12 @@ export function EmployeeTable({
                 />
               </td></tr>
             ) : (
-              paginated.map((emp: any, i: number) => (
+              paginated.map((emp: any) => (
                 <tr key={emp.id} className="hover:bg-slate-50 transition-colors group">
                   <td className="px-3 sm:px-5 py-3">
                     <div className="flex items-center gap-2 sm:gap-3">
                       <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-white text-[10px] sm:text-xs font-semibold shrink-0"
-                        style={{ background: `hsl(${(((page - 1) * pageSize + i) * 53) % 360}, 65%, 55%)` }}>
+                        style={{ background: `hsl(${hueFromId(emp.id)}, 65%, 55%)` }}>
                         {emp.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
                       </div>
                       <div className="min-w-0">

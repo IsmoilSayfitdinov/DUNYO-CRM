@@ -21,37 +21,14 @@ from app.schemas.session import SessionInfo
 from app.schemas.token_info import TokenInfo
 from app.schemas.user_info import UserInfo
 
+from user_agents import parse
 
-def _device_label(ua: str | None) -> str:
-    """User-Agent'dan o'qiladigan qisqa nom (kutubxonasiz oddiy evristika)."""
-    if not ua:
-        return "Noma'lum qurilma"
-    u = ua.lower()
-    if "iphone" in u:
-        os_name = "iPhone"
-    elif "ipad" in u:
-        os_name = "iPad"
-    elif "android" in u:
-        os_name = "Android"
-    elif "windows" in u:
-        os_name = "Windows"
-    elif "mac os" in u or "macintosh" in u:
-        os_name = "Mac"
-    elif "linux" in u:
-        os_name = "Linux"
-    else:
-        os_name = "Qurilma"
-    if "edg" in u:
-        browser = "Edge"
-    elif "chrome" in u or "crios" in u:
-        browser = "Chrome"
-    elif "firefox" in u or "fxios" in u:
-        browser = "Firefox"
-    elif "safari" in u:
-        browser = "Safari"
-    else:
-        browser = "Brauzer"
-    return f"{os_name} · {browser}"
+def _device_label(user_agents: str | None) -> str:
+    ua = parse(user_agents)
+    return (
+        f"{ua.os.family} · "
+        f"{ua.browser.family}"
+    )
 
 
 class AuthService:
@@ -67,7 +44,6 @@ class AuthService:
         user = await self.repo.get_user_by_username(data.username)
 
         if not user:
-            # Timing-attack / user-enumeration himoyasi
             dummy_password_check()
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Foydalanuvchi nomi yoki parol noto'g'ri")
 
@@ -162,3 +138,9 @@ class AuthService:
         if not session or session.user_id != user_id:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sessiya topilmadi")
         await self.session_repo.revoke(session_id)
+
+    async def logout(self, user_id: UUID, jti: str) -> None:
+        if not jti:
+            raise HTTPException(401, "Sessiya yaroqsiz...")
+        
+        await self.revoke_session(user_id, UUID(jti))

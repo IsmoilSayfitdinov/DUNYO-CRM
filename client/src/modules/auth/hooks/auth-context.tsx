@@ -53,9 +53,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void init();
   }, []);
 
-  const logout = () => {
-    clearTokens();
-    setUser(null);
+   const logout = async () => {
+      console.log("🔴 LOGOUT BOSILDI");  
+      try {
+          await sessionApi.logout();
+      } catch {
+          // backend xato bersa ham, mahalliy tozalashni davom ettiramiz
+      }
+      clearTokens();   // ← bu HAR DOIM ishlaydi (try'dan tashqarida)
+      setUser(null);
   };
 
   return (

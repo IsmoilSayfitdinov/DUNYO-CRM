@@ -46,7 +46,7 @@ export function EditAttendanceModal({ open, record, onClose, onSave }: any) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-[calc(100vw-2rem)] sm:max-w-md max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-2xl border border-slate-200">
+      <div role="dialog" aria-modal="true" aria-label="Davomatni tahrirlash" className="relative w-full max-w-[calc(100vw-2rem)] sm:max-w-md max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-2xl border border-slate-200">
         <div className="flex items-center justify-between px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-200/50">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -57,7 +57,7 @@ export function EditAttendanceModal({ open, record, onClose, onSave }: any) {
               <p className="text-xs text-slate-400 mt-0.5">{record.date}</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
+          <button onClick={onClose} aria-label="Yopish" className="p-2 -m-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
             <X size={16} />
           </button>
         </div>
@@ -97,9 +97,9 @@ export function EditAttendanceModal({ open, record, onClose, onSave }: any) {
           )}
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-end gap-3 px-4 sm:px-6 py-3 sm:py-4 border-t border-slate-200/50 bg-slate-50">
-          <button onClick={onClose} className="px-4 py-2 text-sm rounded-lg border border-slate-200 text-slate-700 hover:bg-white transition-all">Bekor qilish</button>
-          <button onClick={handleSave} className="px-5 py-2 text-sm rounded-lg font-medium text-white bg-primary hover:bg-primary/90 transition-all">
+        <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 border-t border-slate-200/50 bg-slate-50">
+          <button onClick={onClose} className="w-full sm:w-auto px-4 py-2.5 text-sm rounded-lg border border-slate-200 text-slate-700 hover:bg-white transition-all">Bekor qilish</button>
+          <button onClick={handleSave} className="w-full sm:w-auto px-5 py-2.5 text-sm rounded-lg font-medium text-white bg-primary hover:bg-primary/90 transition-all">
             O'zgarishlarni saqlash
           </button>
         </div>

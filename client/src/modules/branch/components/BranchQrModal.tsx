@@ -46,7 +46,7 @@ export function BranchQrModal({ open, branch, onClose }: { open: boolean; branch
             </div>
             <h3 className="text-base font-semibold text-slate-900">Filial QR kodi</h3>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all">
+          <button onClick={onClose} aria-label="Yopish" className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all">
             <X size={16} />
           </button>
         </div>

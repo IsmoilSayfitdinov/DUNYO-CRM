@@ -61,11 +61,11 @@ export function AttendanceRecords() {
   // Tanlangan kun bo'yicha holat sanoqlari (butun kun, filtrdan qat'i nazar)
   const countBy = (label: string) => rows.filter((r) => r.status === label).length;
   const dayStats = [
-    { label: "Keldi", value: countBy("Keldi"), text: "text-success", bg: "bg-success/10" },
-    { label: "Kechikdi", value: countBy("Kechikdi"), text: "text-warning", bg: "bg-warning/10" },
-    { label: "Kelmadi", value: countBy("Kelmadi"), text: "text-destructive", bg: "bg-destructive/10" },
-    { label: "Sababli", value: countBy("Sababli"), text: "text-amber-500", bg: "bg-amber-500/10" },
-    { label: "Ta'tilda", value: countBy("Ta'tilda"), text: "text-blue-500", bg: "bg-blue-500/10" },
+    { label: "Keldi", value: countBy("Keldi"), dot: "bg-success", bg: "bg-success/10" },
+    { label: "Kechikdi", value: countBy("Kechikdi"), dot: "bg-warning", bg: "bg-warning/10" },
+    { label: "Kelmadi", value: countBy("Kelmadi"), dot: "bg-destructive", bg: "bg-destructive/10" },
+    { label: "Sababli", value: countBy("Sababli"), dot: "bg-amber-500", bg: "bg-amber-500/10" },
+    { label: "Ta'tilda", value: countBy("Ta'tilda"), dot: "bg-blue-500", bg: "bg-blue-500/10" },
   ];
 
   return (
@@ -76,15 +76,15 @@ export function AttendanceRecords() {
       </div>
 
       {/* Kunlik holat sanoqlari */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {dayStats.map((s) => (
-          <div key={s.label} className="bg-white border border-slate-200 rounded-xl p-3 sm:p-4 flex items-center justify-between gap-2">
+          <div key={s.label} className="bg-white border border-slate-200 rounded-xl p-3 sm:p-4 flex items-center justify-between gap-2 shadow-sm hover:shadow-md transition-shadow">
             <div className="min-w-0">
               <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider truncate">{s.label}</div>
               <div className="text-xl sm:text-2xl font-black text-slate-900 tabular-nums mt-0.5">{s.value}</div>
             </div>
-            <div className={`w-9 h-9 rounded-lg ${s.bg} ${s.text} flex items-center justify-center shrink-0 text-sm font-black`}>
-              {s.value}
+            <div className={`w-9 h-9 rounded-lg ${s.bg} flex items-center justify-center shrink-0`}>
+              <span className={`w-2.5 h-2.5 rounded-full ${s.dot}`} />
             </div>
           </div>
         ))}

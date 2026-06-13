@@ -1,6 +1,9 @@
 import { Check, X, ClipboardList } from "lucide-react";
 import { StatusBadge } from "@/shared/ui/StatusBadge";
 import { EmptyState } from "@/shared/ui/EmptyState";
+import { leaveTypeLabel } from "../../constants/leave-types";
+
+const hue = (s: string) => [...s].reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
 
 export function LeaveRequestCards({ requests, onApprove, onReject }: any) {
   return (
@@ -20,13 +23,13 @@ export function LeaveRequestCards({ requests, onApprove, onReject }: any) {
               <div className="flex items-center gap-2.5 min-w-0">
                 <div
                   className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-white"
-                  style={{ background: `hsl(${(req.employeeId * 15) % 40}, 70%, 55%)` }}
+                  style={{ background: `hsl(${hue(req.employee)}, 65%, 55%)` }}
                 >
                   {req.employee.split(" ").map((n: string) => n[0]).join("")}
                 </div>
                 <div className="min-w-0">
                   <div className="text-sm font-medium text-slate-800 truncate">{req.employee}</div>
-                  <div className="text-xs text-slate-400">{req.type}</div>
+                  <div className="text-xs text-slate-400">{leaveTypeLabel(req.type)}</div>
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
@@ -35,12 +38,14 @@ export function LeaveRequestCards({ requests, onApprove, onReject }: any) {
                   <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => onApprove(req.id)}
+                      aria-label="Tasdiqlash"
                       className="flex h-10 w-10 items-center justify-center rounded-lg bg-success/10 text-success border border-success/20"
                     >
                       <Check size={16} />
                     </button>
                     <button
                       onClick={() => onReject(req.id)}
+                      aria-label="Rad etish"
                       className="flex h-10 w-10 items-center justify-center rounded-lg bg-destructive/10 text-destructive border border-destructive/20"
                     >
                       <X size={16} />

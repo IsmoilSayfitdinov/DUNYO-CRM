@@ -29,7 +29,7 @@ class EmployeeService:
     # Faqat shu maydonlarni update qabul qiladi (mass-assignment'dan himoya).
     EMPLOYEE_FIELDS = {
         "is_active", "branch_id", "position",
-        "shift_start", "shift_end", "shift_number", "hourly_rate",
+        "shift_start", "shift_end", "shift_number", "hourly_rate", "nfc_uid"
     }
 
     def __init__(
@@ -217,10 +217,8 @@ class EmployeeService:
                 setattr(employee.user, field, value)
             elif field in self.EMPLOYEE_FIELDS:
                 setattr(employee, field, value)
-            # boshqa maydonlar (leader_user_id va h.k.) yuqorida alohida ishlangan
 
-        # is_active xodimga ham, USER hisobiga ham qo'llanadi — aks holda
-        # "bloklangan" xodim baribir login qila olardi.
+       
         if "is_active" in update_fields:
             employee.user.is_active = update_fields["is_active"]
 
@@ -244,3 +242,4 @@ class EmployeeService:
         await self.repo.database.commit()
 
         return True
+    

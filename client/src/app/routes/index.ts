@@ -1,9 +1,11 @@
 import { createBrowserRouter } from "react-router";
 import React from "react";
+import { NfcScanner } from "@/modules/attendance/pages/NfcScanner";
 
 import { NotFound } from "./NotFound";
 import { Login } from "@/modules/auth/pages/Login";
 import { ProtectedRoute } from "./ProtectedRoute";
+import { PublicRoute } from "./PublicRoute";
 import { withComingSoon } from "@/shared/ui/ComingSoon";
 
 // Leader
@@ -40,7 +42,7 @@ import { Notifications } from "@/modules/notification/pages/Notifications";
 import { Settings } from "@/modules/settings/pages/Settings";
 
 export const router = createBrowserRouter([
-  { path: "/", Component: Login },
+  { path: "/", element: React.createElement(PublicRoute, null, React.createElement(Login)) },
   {
     path: "/leader",
     element: React.createElement(ProtectedRoute, { allowedRoles: ["leader"] }, React.createElement(LeaderLayout)),
@@ -81,5 +83,6 @@ export const router = createBrowserRouter([
     ],
   },
 
+  { path: "/nfc", Component: NfcScanner },
   { path: "*", Component: NotFound },
 ]);

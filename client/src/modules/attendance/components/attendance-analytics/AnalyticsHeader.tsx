@@ -1,4 +1,4 @@
-import { Filter, Download } from "lucide-react";
+import { Download } from "lucide-react";
 
 export function AnalyticsHeader() {
   return (
@@ -8,10 +8,7 @@ export function AnalyticsHeader() {
         <p className="text-xs sm:text-sm text-slate-400 mt-0.5">{"Davomat tendentsiyalari va intizom bo'yicha batafsil ma'lumotlar"}</p>
       </div>
       <div className="flex items-center gap-3">
-        <button className="flex items-center gap-2 text-sm bg-white border border-slate-200 rounded-lg h-11 px-4 text-slate-600 hover:bg-slate-50">
-          <Filter size={14} /> {"Filtrlar"}
-        </button>
-        <button className="flex items-center gap-2 text-sm bg-white border border-slate-200 rounded-lg h-11 px-4 text-slate-600 hover:bg-slate-50">
+        <button disabled title="Tez orada" className="flex items-center gap-2 text-sm bg-white border border-slate-200 rounded-lg h-11 px-4 text-slate-600 opacity-50 cursor-not-allowed transition-colors">
           <Download size={14} /> {"Eksport"}
         </button>
       </div>

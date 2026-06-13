@@ -32,8 +32,8 @@ export function Topbar({
 
       {/* Logo text on mobile */}
       <div className="lg:hidden flex items-center gap-2 min-w-0">
-        <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: "#dc2626" }}>
-          <Building2 size={14} className="text-white" />
+        <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-primary">
+          <Building2 size={14} className="text-primary-foreground" />
         </div>
         <span className="text-sm font-bold text-slate-800 truncate">DUNYO CRM</span>
       </div>
@@ -58,7 +58,7 @@ export function Topbar({
         >
           <Bell size={18} />
           {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+            <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
@@ -72,7 +72,7 @@ export function Topbar({
               <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200/50">
                 <div className="text-sm font-semibold text-slate-700">Bildirishnomalar</div>
                 {unreadCount > 0 && (
-                  <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">{unreadCount} yangi</span>
+                  <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">{unreadCount} yangi</span>
                 )}
               </div>
               <div className="divide-y divide-slate-200/30 max-h-80 overflow-y-auto">
@@ -80,12 +80,12 @@ export function Topbar({
                   <div className="px-4 py-8 text-center text-sm text-slate-400">Bildirishnoma yo'q</div>
                 ) : (
                   recent.map((n) => (
-                    <div key={n.id} className={`flex items-start gap-3 px-4 py-3.5 hover:bg-slate-50 cursor-pointer transition-colors ${!n.is_read ? "bg-slate-50/70" : ""}`}>
-                      <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${!n.is_read ? "bg-red-500" : "bg-slate-300"}`} />
+                    <div key={n.id} className={`flex items-start gap-3 px-4 py-3.5 hover:bg-slate-50 transition-colors ${!n.is_read ? "bg-slate-50/70" : ""}`}>
+                      <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${!n.is_read ? "bg-primary" : "bg-slate-300"}`} />
                       <div className="flex-1 min-w-0">
                         <p className={`text-sm leading-snug ${!n.is_read ? "font-medium text-slate-800" : "text-slate-600"}`}>{n.title}</p>
-                        {n.body && <p className="text-xs text-slate-400 mt-0.5 line-clamp-2">{n.body}</p>}
-                        <p className="text-[10px] text-slate-300 mt-0.5">{fmtTime(n.created_at)}</p>
+                        {n.body && <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{n.body}</p>}
+                        <p className="text-[10px] text-slate-500 mt-0.5">{fmtTime(n.created_at)}</p>
                       </div>
                     </div>
                   ))
@@ -117,10 +117,7 @@ export function Topbar({
 
       {/* User avatar - topbar (desktop) */}
       <div className="hidden lg:flex items-center gap-2 pl-2 border-l border-slate-200">
-        <div
-          className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
-          style={{ background: "#dc2626" }}
-        >
+        <div className="w-8 h-8 rounded-full flex items-center justify-center bg-primary text-primary-foreground text-xs font-bold shrink-0">
           {getInitials(userName)}
         </div>
         <div className="hidden xl:block min-w-0">

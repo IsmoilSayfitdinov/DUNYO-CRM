@@ -36,7 +36,7 @@ export function EmployeeProfileHeader({
     { icon: Phone, label: "Telefon", value: emp.user.phone || "—", color: "var(--primary)" },
     { icon: Clock, label: "Smena", value: shift || "—", color: "var(--warning)" },
     { icon: DollarSign, label: "Soatlik stavka", value: formatSom(emp.hourly_rate), color: "var(--success)" },
-    { icon: Calendar, label: "Qo'shilgan", value: joinDate || "—", color: "#6366f1" },
+    { icon: Calendar, label: "Qo'shilgan", value: joinDate || "—", color: "var(--secondary)" },
   ];
 
   return (
@@ -74,7 +74,7 @@ export function EmployeeProfileHeader({
                   onClick={onCalculateSalary}
                   disabled={isCalculating}
                   title={periodLabel ? `${periodLabel} oyi uchun hisoblash` : undefined}
-                  className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold bg-green-500/15 border border-green-500/60 rounded-xl text-green-700 hover:bg-green-500/25 shadow-sm transition-all disabled:opacity-60"
+                  className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold bg-success/10 border border-success/30 rounded-xl text-success hover:bg-success/20 shadow-sm transition-all disabled:opacity-60"
                 >
                   {isCalculating ? <Loader2 size={14} className="animate-spin" /> : <DollarSign size={14} />}
                   {isCalculating ? "Hisoblanmoqda…" : "Oylik Hisoblash"}
@@ -90,7 +90,7 @@ export function EmployeeProfileHeader({
             ) : periodSalary.is_paid ? (
               <div
                 title={periodSalary.paid_at ? `To'langan: ${periodSalary.paid_at.slice(0, 10)}` : undefined}
-                className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold bg-emerald-500/15 border border-emerald-500/60 rounded-xl text-emerald-700 cursor-default"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold bg-success/10 border border-success/30 rounded-xl text-success cursor-default"
               >
                 <CheckCircle size={14} /> To'langan
               </div>
@@ -107,12 +107,12 @@ export function EmployeeProfileHeader({
             )}
             {emp.is_active ? (
               <button onClick={() => onToggleActive(false)} disabled={isToggling}
-                className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold bg-white border border-amber-200 rounded-xl text-amber-600 hover:bg-amber-50 shadow-sm transition-all disabled:opacity-60">
+                className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold bg-white border border-warning/30 rounded-xl text-warning hover:bg-warning/10 shadow-sm transition-all disabled:opacity-60">
                 <UserMinus size={14} /> Faolsizlantirish
               </button>
             ) : (
               <button onClick={() => onToggleActive(true)} disabled={isToggling}
-                className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold bg-white border border-emerald-200 rounded-xl text-emerald-600 hover:bg-emerald-50 shadow-sm transition-all disabled:opacity-60">
+                className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold bg-success/10 border border-success/30 rounded-xl text-success hover:bg-success/20 shadow-sm transition-all disabled:opacity-60">
                 <UserCheck size={14} /> Faollashtirish
               </button>
             )}

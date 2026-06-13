@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MapPin, Plus, Building2, Ruler, ExternalLink, Pencil, QrCode, Delete, Trash } from "lucide-react";
+import { MapPin, Plus, Building2, Ruler, ExternalLink, Pencil, QrCode, Trash } from "lucide-react";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { useBranches, useDeleteBranch } from "@/modules/branch";
 import type { Branch } from "@/modules/branch";
@@ -82,7 +82,7 @@ export function Branches() {
                 <div className="flex flex-wrap items-center gap-2">
                   <button
                     onClick={() => setQrBranch(b)}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-red-700 border border-primary/20 bg-primary/5 rounded-lg px-3 py-2 min-h-[40px] hover:bg-primary/10 transition-all"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary border border-primary/20 bg-primary/5 rounded-lg px-3 py-2 min-h-[40px] hover:bg-primary/10 transition-all"
                   >
                     <QrCode size={14} /> QR
                   </button>
@@ -94,9 +94,9 @@ export function Branches() {
                   </button>
                   <button
                     onClick={() => setDeleting(b)}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-red-600 hover:text-slate-900 border border-slate-200 rounded-lg px-3 py-2 min-h-[40px] hover:bg-slate-50 transition-all"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-destructive hover:text-destructive border border-destructive/20 rounded-lg px-3 py-2 min-h-[40px] hover:bg-destructive/5 transition-all"
                   >
-                    <Trash color="red" size={14} /> O'chirish
+                    <Trash size={14} /> O'chirish
                   </button>
                 </div>
               </div>

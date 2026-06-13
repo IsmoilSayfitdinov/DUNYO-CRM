@@ -16,16 +16,16 @@ export function NotFound() {
         <p className="text-sm text-slate-400 mb-8 leading-relaxed font-medium">
           Siz qidirayotgan sahifa mavjud emas yoki sizda uni ko'rish uchun ruxsat yo'q.
         </p>
-        <div className="flex items-center justify-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 px-6 py-3 text-sm font-bold bg-white border border-slate-200 rounded-xl text-slate-700 hover:bg-slate-50 transition-all shadow-sm active:scale-[0.98]"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 text-sm font-bold bg-white border border-slate-200 rounded-xl text-slate-700 hover:bg-slate-50 transition-all shadow-sm active:scale-[0.98]"
           >
             <ArrowLeft size={16} /> Ortga qaytish
           </button>
           <button
             onClick={() => navigate("/")}
-            className="flex items-center gap-2 px-6 py-3 text-sm font-bold bg-primary text-primary-foreground rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20 active:scale-[0.98]"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 text-sm font-bold bg-primary text-primary-foreground rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20 active:scale-[0.98]"
           >
             <Home size={16} /> Bosh sahifa
           </button>

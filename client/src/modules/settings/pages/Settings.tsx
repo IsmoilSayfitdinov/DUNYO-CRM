@@ -4,6 +4,9 @@ import { toast } from "sonner";
 import { useSettings, useUpdateSettings } from "../hooks/use-settings";
 import { ChangePasswordModal } from "../components/ChangePasswordModal";
 import { SessionsList } from "../components/SessionsList";
+import { Section } from "../components/admin-settings/Section";
+import { Toggle } from "../components/admin-settings/Toggle";
+import { Skeleton } from "@/shared/ui/skeleton";
 import { subscribeToPush, isPushSubscribed, pushSupported, sendTestPush } from "@/modules/notification";
 
 // iOS aniqlash — iPhone/iPad'да push faqat "Bosh ekranga qo'shilgan" (standalone) ilovada ishlaydi.
@@ -94,19 +97,6 @@ export function Settings() {
   const twoFactor = settings?.two_factor_enabled ?? false;
   const toggleTwoFactor = () => mutate({ two_factor_enabled: !twoFactor });
 
-  function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
-    return (
-      <button
-        onClick={() => onChange(!value)}
-        role="switch"
-        aria-checked={value}
-        className={`relative w-11 h-6 rounded-full transition-all shrink-0 before:absolute before:-inset-y-2.5 before:inset-x-0 before:content-[''] ${value ? "bg-primary" : "bg-slate-200"}`}
-      >
-        <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${value ? "translate-x-5" : ""}`} />
-      </button>
-    );
-  }
-
   return (
     <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 ">
       <div>
@@ -115,12 +105,7 @@ export function Settings() {
       </div>
 
       {/* Notification preferences */}
-      <div className="bg-white rounded-xl border border-slate-200 p-3 sm:p-5">
-        <div className="flex items-center gap-2 mb-5">
-          <Bell size={18} className="text-slate-400" />
-          <h3 className="font-semibold text-slate-900">Bildirishnoma sozlamalari</h3>
-        </div>
-
+      <Section title="Bildirishnoma sozlamalari" icon={Bell}>
         {/* Qurilma push (Telegram/Instagram kabi — ilova yopiq bo'lsa ham keladi) */}
         <div className="mb-5 p-3 sm:p-4 rounded-xl border border-primary/20 bg-primary/5">
           <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -150,8 +135,8 @@ export function Settings() {
           {/* iOS: faqat o'rnatilgan (standalone) ilovada push ishlaydi */}
           {isIOS && !isStandalone && (
             <div className="mt-3 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2.5 leading-relaxed">
-              <b>iPhone/iPad:</b> push ishlashi uchun avval Safari'да <b>Ulashish (⬆️) → "Bosh ekranga qo'shish"</b> qiling,
-              so'ng ilovani <b>bosh ekrandagi ikonkadan</b> oching va shu yerда "Yoqish"ни bosing. (iOS 16.4+)
+              <b>iPhone/iPad:</b> push ishlashi uchun avval Safari'da <b>Ulashish (⬆️) → "Bosh ekranga qo'shish"</b> qiling,
+              so'ng ilovani <b>bosh ekrandagi ikonkadan</b> oching va shu yerda "Yoqish"ni bosing. (iOS 16.4+)
             </div>
           )}
           {!pushSupported() && !isIOS && (
@@ -160,35 +145,41 @@ export function Settings() {
         </div>
 
         <div className="space-y-4">
-          {[
-            { label: "SMS bildirishnomalar", desc: "Muhim xabarlarni SMS orqali yuborish", value: smsNotif, onChange: setSmsNotif },
-            { label: "Push bildirishnomalar (master)", desc: "Barcha qurilma push'larini yoqish/o'chirish", value: pushNotif, onChange: setPushNotif },
-            { label: "Ta'til so'rovlari", desc: "So'rov holati o'zgarganda push", value: leaveNotif, onChange: setLeaveNotif },
-            { label: "Maosh / ish haqi", desc: "Oylik tasdiqlanganda push", value: salaryNotif, onChange: setSalaryNotif },
-            { label: "Davomat", desc: "Kelish/ketish, kechikish haqida push", value: attendanceNotif, onChange: setAttendanceNotif },
-            { label: "Yangi vazifalar", desc: "Yangi vazifa biriktirilganda push", value: taskNotif, onChange: setTaskNotif },
-          ].map((item) => (
-            <div key={item.label} className="flex items-center justify-between gap-3 py-3 border-b border-slate-200/30 last:border-0">
-              <div className="min-w-0">
-                <div className="text-sm font-medium text-slate-800">{item.label}</div>
-                <div className="text-xs text-slate-400 mt-0.5">{item.desc}</div>
-              </div>
-              <Toggle value={item.value} onChange={item.onChange} />
-            </div>
-          ))}
+          {isLoading
+            ? Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between gap-3 py-3 border-b border-slate-200/30 last:border-0">
+                  <div className="space-y-1.5">
+                    <Skeleton className="h-4 w-40" />
+                    <Skeleton className="h-3 w-56" />
+                  </div>
+                  <Skeleton className="h-6 w-11 rounded-full shrink-0" />
+                </div>
+              ))
+            : [
+                { label: "SMS bildirishnomalar", desc: "Muhim xabarlarni SMS orqali yuborish", value: smsNotif, onChange: setSmsNotif },
+                { label: "Push bildirishnomalar (master)", desc: "Barcha qurilma push'larini yoqish/o'chirish", value: pushNotif, onChange: setPushNotif },
+                { label: "Ta'til so'rovlari", desc: "So'rov holati o'zgarganda push", value: leaveNotif, onChange: setLeaveNotif },
+                { label: "Maosh / ish haqi", desc: "Oylik tasdiqlanganda push", value: salaryNotif, onChange: setSalaryNotif },
+                { label: "Davomat", desc: "Kelish/ketish, kechikish haqida push", value: attendanceNotif, onChange: setAttendanceNotif },
+                { label: "Yangi vazifalar", desc: "Yangi vazifa biriktirilganda push", value: taskNotif, onChange: setTaskNotif },
+              ].map((item) => (
+                <div key={item.label} className="flex items-center justify-between gap-3 py-3 border-b border-slate-200/30 last:border-0">
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium text-slate-800">{item.label}</div>
+                    <div className="text-xs text-slate-400 mt-0.5">{item.desc}</div>
+                  </div>
+                  <Toggle value={item.value} onChange={item.onChange} />
+                </div>
+              ))}
         </div>
-        <button onClick={handleSave} disabled={isPending || isLoading} className="mt-4 w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground text-sm font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed">
-          <Save size={14} />
-          {isPending ? "Saqlanmoqda..." : saved ? "Saqlandi!" : "Sozlamalarni saqlash"}
+        <button onClick={handleSave} disabled={isPending || isLoading} className="mt-4 w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-primary text-primary-foreground text-sm font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed">
+          <Save size={15} />
+          {isPending ? "Saqlanmoqda..." : saved ? "Saqlandi!" : "Xabarnomalarni saqlash"}
         </button>
-      </div>
+      </Section>
 
       {/* Security */}
-      <div className="bg-white rounded-xl border border-slate-200 p-3 sm:p-5">
-        <div className="flex items-center gap-2 mb-5">
-          <Shield size={18} className="text-slate-400" />
-          <h3 className="font-semibold text-slate-900">Xavfsizlik</h3>
-        </div>
+      <Section title="Xavfsizlik" icon={Shield}>
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-3 p-3 sm:p-4 bg-slate-50 rounded-xl border border-slate-200/50">
             <div className="flex items-center gap-3 min-w-0">
@@ -215,16 +206,12 @@ export function Settings() {
             </button>
           </div>
         </div>
-      </div>
+      </Section>
 
       {/* Active sessions */}
-      <div className="bg-white rounded-xl border border-slate-200 p-3 sm:p-5">
-        <div className="flex items-center gap-2 mb-5">
-          <Monitor size={18} className="text-slate-400" />
-          <h3 className="font-semibold text-slate-900">Faol seanslar</h3>
-        </div>
+      <Section title="Faol seanslar" icon={Monitor}>
         <SessionsList />
-      </div>
+      </Section>
 
       <ChangePasswordModal open={pwOpen} onClose={() => setPwOpen(false)} />
     </div>

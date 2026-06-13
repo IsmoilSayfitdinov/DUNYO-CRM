@@ -17,11 +17,11 @@ export function MoreDrawer({
   return (
     <>
       <div
-        className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+        className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200"
         onClick={() => setMoreOpen(false)}
       />
       <div
-        className="fixed left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl overflow-hidden"
+        className="fixed left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom duration-300 ease-out"
         style={{ bottom: "calc(var(--bottomnav-h) + env(safe-area-inset-bottom, 0px))", maxHeight: "60vh" }}
       >
         {/* Drag handle */}
@@ -31,10 +31,7 @@ export function MoreDrawer({
 
         {/* User info in drawer */}
         <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-3">
-          <div
-            className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
-            style={{ background: "#dc2626" }}
-          >
+          <div className="w-10 h-10 rounded-full flex items-center justify-center bg-primary text-primary-foreground text-sm font-bold shrink-0">
             {getInitials(userName)}
           </div>
           <div className="flex-1 min-w-0">
@@ -43,7 +40,7 @@ export function MoreDrawer({
           </div>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-1.5 text-xs text-red-500 font-medium px-3 py-1.5 rounded-lg bg-red-50 border border-red-100"
+            className="flex items-center gap-1.5 text-xs text-primary font-medium px-4 py-2.5 min-h-[40px] rounded-xl bg-red-50 border border-red-100 active:scale-95 transition-transform"
           >
             <LogOut size={13} />
             Chiqish
@@ -71,7 +68,7 @@ export function MoreDrawer({
                   <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
                     active ? "bg-red-100" : "bg-white"
                   }`}>
-                    <Icon size={18} style={{ color: active ? "#dc2626" : "#64748b" }} />
+                    <Icon size={18} className={active ? "text-primary" : "text-slate-500"} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className={`text-sm font-semibold truncate ${active ? "text-red-700" : "text-slate-700"}`}>

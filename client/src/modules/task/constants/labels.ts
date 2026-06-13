@@ -9,10 +9,10 @@ export const PRIORITY_LABEL: Record<TaskPriority, string> = {
 
 /** Tailwind ranglar (badge uchun). */
 export const PRIORITY_STYLE: Record<TaskPriority, string> = {
-  critical: "bg-red-50 text-red-600 border-red-100",
-  high: "bg-orange-50 text-orange-600 border-orange-100",
-  medium: "bg-blue-50 text-blue-600 border-blue-100",
-  low: "bg-slate-100 text-slate-500 border-slate-200",
+  critical: "bg-destructive/10 text-destructive border-destructive/20",
+  high: "bg-orange-50 text-orange-700 border-orange-100",
+  medium: "bg-blue-50 text-blue-700 border-blue-100",
+  low: "bg-slate-100 text-slate-600 border-slate-200",
 };
 
 export const PRIORITY_ORDER: Record<TaskPriority, number> = {
@@ -26,9 +26,9 @@ export const STATUS_LABEL: Record<TaskStatus, string> = {
 };
 
 export const STATUS_STYLE: Record<TaskStatus, string> = {
-  todo: "bg-slate-100 text-slate-500 border-slate-200",
-  in_progress: "bg-amber-50 text-amber-600 border-amber-100",
-  done: "bg-emerald-50 text-emerald-600 border-emerald-100",
+  todo: "bg-slate-100 text-slate-600 border-slate-200",
+  in_progress: "bg-amber-50 text-amber-700 border-amber-100",
+  done: "bg-emerald-50 text-emerald-700 border-emerald-100",
 };
 
 /** Muddat o'tganmi (done bo'lmagan va due_date kechagan). */

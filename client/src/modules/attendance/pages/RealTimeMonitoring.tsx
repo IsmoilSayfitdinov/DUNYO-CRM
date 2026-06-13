@@ -27,7 +27,7 @@ export function RealTimeMonitoring() {
 
   // Real API: barcha xodimlar + bugungi jamoa davomati + jonli harakatlar
   const { data: empData } = useEmployees({ limit: 100, offset: 0 });
-  const { data: team, isLoading, refetch, isFetching } = useTeamAttendance(todayStr);
+  const { data: team, isLoading, isError, refetch, isFetching } = useTeamAttendance(todayStr);
   const { data: activity } = useDashboardActivity(10);
 
   const teamMap = new Map((team ?? []).map((a) => [a.employee_id, a]));
@@ -83,7 +83,7 @@ export function RealTimeMonitoring() {
         {stats.map((s) => {
           const Icon = s.icon;
           return (
-            <div key={s.label} className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-3 sm:p-5 transition-all hover:shadow-lg">
+            <div key={s.label} className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-3 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `color-mix(in srgb, ${s.color}, transparent 90%)` }}>
                   <Icon size={20} style={{ color: s.color }} />
@@ -105,10 +105,46 @@ export function RealTimeMonitoring() {
         </div>
         {isLoading ? (
           <EmptyState variant="loading" title="Yuklanmoqda…" description="Jonli holat olinmoqda" />
+        ) : isError ? (
+          <EmptyState variant="error" title="Yuklab bo'lmadi" description="Jonli holatni yuklab bo'lmadi." />
         ) : roster.length === 0 ? (
           <EmptyState title="Xodim yo'q" description="Ma'lumot mavjud emas." />
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* ===== MOBIL: kartalar (<640px) ===== */}
+          <div className="sm:hidden divide-y divide-slate-200/60">
+            {roster.map((r) => (
+              <div key={r.id} className="p-3.5 flex items-center gap-3">
+                <div className="relative shrink-0">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-xs font-semibold" style={{ background: `hsl(${hue(r.id)}, 65%, 55%)` }}>
+                    {r.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+                  </div>
+                  {r.hasIn && !r.hasOut && (
+                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold text-slate-800 truncate">{r.name}</div>
+                  {(r.position || r.shift) && (
+                    <div className="text-xs text-slate-400 truncate mt-0.5">
+                      {r.position || "—"} · {r.shift}
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 mt-1 text-xs text-slate-500">
+                    <span>↓ {r.checkIn || "—"}</span>
+                    <span className="text-slate-300">·</span>
+                    <span>↑ {r.checkOut || "—"}</span>
+                  </div>
+                </div>
+                <div className="shrink-0">
+                  <StatusBadge status={r.status as any} />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* ===== DESKTOP: jadval (sm+) ===== */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full">
               <thead className="bg-slate-50">
                 <tr>
@@ -143,6 +179,7 @@ export function RealTimeMonitoring() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
 

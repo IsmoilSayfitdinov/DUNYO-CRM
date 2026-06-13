@@ -29,6 +29,15 @@ async def scan(
 ):
     return await attendanceService.scan(user_id=user.id, data=data)
 
+@router.post("/nfc", response_model=AttendanceInfo)
+async def nfc_scan(
+    nfc_uid: str,
+    attendanceService: AttendanceService = Depends(),
+):
+    return await attendanceService.nfc(nfc_uid=nfc_uid)
+
+
+
 @router.get("/me", response_model=AttendanceListResponse, dependencies=[Depends(require_role(Role.employee))])
 async def get_my_attendance(
     attendanceService: AttendanceService = Depends(),

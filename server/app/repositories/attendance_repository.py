@@ -24,28 +24,45 @@ class AttendanceRepository:
         return await self.database.scalar(query)
 
     async def get_open(self, employee_id: UUID) -> Attendance | None:
-        """Ochiq (check_out qilinmagan) yozuv — KUNGA bog'liq emas.
-
-        Yarim tunni kesib o'tgan smena ham check-out qilinishi uchun work_date
-        bo'yicha filtrlamaymiz; faqat check_out IS NULL bo'yicha eng oxirgisini olamiz.
-        """
         query = (
             select(Attendance)
             .where(Attendance.employee_id == employee_id)
             .where(Attendance.check_out.is_(None))
+            .where(Attendance.status.in_([AttendanceStatus.came, AttendanceStatus.late]))
             .order_by(Attendance.check_in.desc())
             .limit(1)
         )
         return await self.database.scalar(query)
 
     async def get_today_active(self, employee_id: UUID) -> Attendance | None:
-        # Eslatma: ochiq yozuvni topish uchun get_open afzal — bu metod faqat
-        # "bugun ochiq yozuv bormi" deb tekshirish kerak bo'lgan joylarda.
         query = (
             select(Attendance)
             .where(Attendance.employee_id == employee_id)
             .where(Attendance.work_date == today_local())
             .where(Attendance.check_out.is_(None))
+        )
+        return await self.database.scalar(query)
+
+    async def get_today_placeholder(self, employee_id: UUID) -> Attendance | None:
+        """Bugungi absent/leave/reason "placeholder" yozuvi (agar bo'lsa).
+
+        Avto-job bugun kelmagan deb absent (yoki ta'tilda leave) yozib qo'ygan
+        bo'lishi mumkin. Keyin xodim haqiqatdan kelib check-in qilsa, YANGI yozuv
+        yaratish o'rniga shu placeholder'ni qayta ishlatamiz — aks holda bitta
+        kunda ikkita yozuv (absent + came) qolib, hisobotni chalkashtiradi.
+        """
+        query = (
+            select(Attendance)
+            .where(Attendance.employee_id == employee_id)
+            .where(Attendance.work_date == today_local())
+            .where(Attendance.status.in_([
+                AttendanceStatus.absent,
+                AttendanceStatus.leave,
+                AttendanceStatus.reason,
+            ]))
+            .where(Attendance.check_in.is_(None))
+            .order_by(Attendance.id.desc())
+            .limit(1)
         )
         return await self.database.scalar(query)
 
@@ -55,6 +72,30 @@ class AttendanceRepository:
             .select_from(Attendance)
             .where(Attendance.employee_id == employee_id)
             .where(Attendance.work_date == today_local())
+        )
+
+        result = await self.database.scalar(query)
+        return result or 0
+
+    async def get_today_attended_count(self, employee_id: UUID) -> int:
+        """Bugungi HAQIQIY davomat soni (came/late/left).
+
+        get_today_count BARCHA yozuvni sanaydi — absent/leave/reason ham. Lekin
+        "bugun ish kuning tugaganmi?" yoki "kunlik check-in limiti" uchun faqat
+        haqiqiy davomat muhim. Avto-job bugun absent yozib qo'ygan bo'lsa ham,
+        keyin kelgan xodim check-in qila olishi kerak — shu sababli bu yerda
+        absent/leave/reason hisoblanmaydi.
+        """
+        query = (
+            select(func.count())
+            .select_from(Attendance)
+            .where(Attendance.employee_id == employee_id)
+            .where(Attendance.work_date == today_local())
+            .where(Attendance.status.in_([
+                AttendanceStatus.came,
+                AttendanceStatus.late,
+                AttendanceStatus.left,
+            ]))
         )
 
         result = await self.database.scalar(query)

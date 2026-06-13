@@ -23,11 +23,11 @@ export function UpdatePrompt() {
   if (!offlineReady && !needRefresh) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 left-4 sm:left-auto sm:max-w-sm z-[9998] animate-in slide-in-from-bottom-5 duration-300">
+    <div className="fixed right-4 left-4 sm:left-auto sm:max-w-sm z-[9998] bottom-[calc(var(--bottomnav-h)+env(safe-area-inset-bottom,0px)+0.75rem)] lg:bottom-4 animate-in slide-in-from-bottom-5 duration-300">
       <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 p-4 flex items-start gap-3">
         <div
           className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-            needRefresh ? "bg-primary/10 text-primary" : "bg-emerald-100 text-emerald-600"
+            needRefresh ? "bg-primary/10 text-primary" : "bg-success/10 text-success"
           }`}
         >
           {needRefresh ? <Download size={18} /> : <CheckCircle2 size={18} />}
@@ -46,7 +46,7 @@ export function UpdatePrompt() {
           {needRefresh && (
             <button
               onClick={() => updateServiceWorker(true)}
-              className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold hover:opacity-90 transition-opacity"
+              className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition-opacity"
             >
               <RefreshCw size={12} /> Yangilash
             </button>
@@ -55,7 +55,7 @@ export function UpdatePrompt() {
 
         <button
           onClick={close}
-          className="text-slate-400 hover:text-slate-600 transition-colors shrink-0"
+          className="w-9 h-9 -m-2 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors shrink-0"
           aria-label="Yopish"
         >
           <X size={16} />

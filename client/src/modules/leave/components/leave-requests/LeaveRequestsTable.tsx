@@ -1,6 +1,9 @@
-import { Check, X, Eye, ClipboardList } from "lucide-react";
+import { Check, X, ClipboardList } from "lucide-react";
 import { StatusBadge } from "@/shared/ui/StatusBadge";
 import { EmptyState } from "@/shared/ui/EmptyState";
+import { leaveTypeLabel } from "../../constants/leave-types";
+
+const hue = (s: string) => [...s].reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
 
 export function LeaveRequestsTable({ requests, onApprove, onReject }: any) {
   return (
@@ -42,7 +45,7 @@ export function LeaveRequestsTable({ requests, onApprove, onReject }: any) {
                   <div
                     className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white"
                     style={{
-                      background: `hsl(${(req.employeeId * 15) % 40}, 70%, 55%)`,
+                      background: `hsl(${hue(req.employee)}, 65%, 55%)`,
                     }}
                   >
                     {req.employee
@@ -57,7 +60,7 @@ export function LeaveRequestsTable({ requests, onApprove, onReject }: any) {
               </td>
 
               <td className="px-4 py-3.5 text-sm text-slate-600">
-                {req.type}
+                {leaveTypeLabel(req.type)}
               </td>
               <td className="px-4 py-3.5 text-sm text-slate-600 whitespace-nowrap">
                 {req.from} – {req.to}
@@ -79,21 +82,21 @@ export function LeaveRequestsTable({ requests, onApprove, onReject }: any) {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => onApprove(req.id)}
-                      className="flex h-7 w-7 items-center justify-center rounded-lg bg-success/10 text-success transition-colors hover:bg-success/20 border border-success/20"
+                      aria-label="Tasdiqlash"
+                      className="flex h-9 w-9 items-center justify-center rounded-lg bg-success/10 text-success transition-colors hover:bg-success/20 border border-success/20"
                     >
-                      <Check size={14} />
+                      <Check size={16} />
                     </button>
                     <button
                       onClick={() => onReject(req.id)}
-                      className="flex h-7 w-7 items-center justify-center rounded-lg bg-destructive/10 text-destructive transition-colors hover:bg-destructive/20 border border-destructive/20"
+                      aria-label="Rad etish"
+                      className="flex h-9 w-9 items-center justify-center rounded-lg bg-destructive/10 text-destructive transition-colors hover:bg-destructive/20 border border-destructive/20"
                     >
-                      <X size={14} />
+                      <X size={16} />
                     </button>
                   </div>
                 ) : (
-                  <button className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 text-slate-400">
-                    <Eye size={14} />
-                  </button>
+                  <span className="text-xs text-slate-300">—</span>
                 )}
               </td>
             </tr>

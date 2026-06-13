@@ -9,8 +9,8 @@ const mk = (icon: any, color: string) => ({ icon, color, bg: `color-mix(in srgb,
 
 const typeIcon: Record<string, { icon: any; color: string; bg: string }> = {
   attendance: mk(Calendar, "#3b82f6"),
-  salary: mk(DollarSign, "#16a34a"),
-  leave: mk(FileText, "#f59e0b"),
+  salary: mk(DollarSign, "var(--success)"),
+  leave: mk(FileText, "var(--warning)"),
   task: mk(CheckSquare, "#8b5cf6"),
   system: mk(MessageSquare, "var(--primary)"),
 };
@@ -89,8 +89,8 @@ export function Notifications() {
               <button
                 key={notif.id}
                 onClick={() => { if (!notif.is_read) markRead.mutate(notif.id); }}
-                className={`w-full flex items-start gap-3 sm:gap-4 p-3.5 sm:p-4 rounded-2xl cursor-pointer transition-all border text-left group ${
-                  !notif.is_read ? "bg-white border-primary/20 shadow-md shadow-primary/5" : "bg-white border-slate-200/60 hover:bg-slate-50 hover:border-slate-300"
+                className={`w-full flex items-start gap-3 sm:gap-4 p-3.5 sm:p-4 rounded-2xl transition-all border text-left group ${
+                  !notif.is_read ? "cursor-pointer bg-white border-primary/20 shadow-md shadow-primary/5" : "cursor-default bg-white border-slate-200/60"
                 }`}
               >
                 <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105" style={{ background: cfg.bg }}>

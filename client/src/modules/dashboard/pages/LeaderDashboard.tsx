@@ -42,17 +42,20 @@ export function LeaderDashboard() {
 
   // Reyting — bitta endpointdan: eng yaxshi 5 + xavf ostidagilar (eng past ballar)
   const { data: ranking } = useTopEmployees(50);
-  const topEmployees = (ranking ?? []).slice(0, 5);
-  const atRisk = [...(ranking ?? [])]
-    .filter((e) => e.score < 85)
-    .sort((a, b) => a.score - b.score)
-    .slice(0, 4)
-    .map((e) => ({
-      employee_id: e.employee_id,
-      name: e.name,
-      score: e.score,
-      attendancePct: e.total_days > 0 ? Math.round((e.present_days / e.total_days) * 100) : 0,
-    }));
+  // undefined = hali yuklanmoqda (kartalar skeleton ko'rsatadi), [] = haqiqiy bo'sh holat
+  const topEmployees = ranking ? ranking.slice(0, 5) : undefined;
+  const atRisk = ranking
+    ? [...ranking]
+        .filter((e) => e.score < 85)
+        .sort((a, b) => a.score - b.score)
+        .slice(0, 4)
+        .map((e) => ({
+          employee_id: e.employee_id,
+          name: e.name,
+          score: e.score,
+          attendancePct: e.total_days > 0 ? Math.round((e.present_days / e.total_days) * 100) : 0,
+        }))
+    : undefined;
 
   const kpis = [
     { label: "Jami xodimlar", value: String(overview?.total_employees ?? "—"), sub: "Faol xodimlar", icon: Users, onClick: () => navigate("/leader/staff") },
@@ -64,14 +67,14 @@ export function LeaderDashboard() {
   ];
 
   return (
-    <div className="p-3 sm:p-4 md:p-6 lg:p-8 space-y-4 sm:space-y-6 md:space-y-8 bg-gray-50/50">
+    <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
       <DashboardHeader dateOptions={periodOptions} dateRange={period} setDateRange={setPeriod} />
 
       {/* Ko'rsatkichlar — yuqoridagi davr (period) filtriga bog'langan */}
       <div>
         <div className="flex items-baseline gap-2 mb-3">
-          <h2 className="text-sm font-bold text-gray-700">Ko'rsatkichlar</h2>
-          <span className="text-xs font-medium text-gray-400">· {periodLabel}</span>
+          <h2 className="text-sm font-bold text-slate-700">Ko'rsatkichlar</h2>
+          <span className="text-xs font-medium text-slate-400">· {periodLabel}</span>
         </div>
         <KpiCards kpis={kpis} />
       </div>
