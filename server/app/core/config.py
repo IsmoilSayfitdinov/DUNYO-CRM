@@ -12,15 +12,14 @@ class Setting(BaseSettings):
     # Ishlab chiqarishda faqat haqiqiy domenlar. Dev origin'lar (localhost) uchun
     # .env da CORS_ORIGINS ni override qiling (masalan JSON ro'yxat sifatida).
     CORS_ORIGINS: list[str] = [
-        "https://hr.dunyosupermarket.uz",
-        "https://shop.dunyosupermarket.uz",
-        "https://api.dunyosupermarket.uz",
+        "https://hr.supermarketdunyo.uz",
+        "https://api.supermarketdunyo.uz",
         "https://dunyo-crm-client-production.up.railway.app",
         "https://dunyo-crm-server-production.up.railway.app",
     ]
     # Host header himoyasi (TrustedHost)
     ALLOWED_HOSTS: list[str] = [
-        "api.dunyosupermarket.uz",
+        "api.supermarketdunyo.uz",
         "dunyo-crm-server-production.up.railway.app",
     ]
 
