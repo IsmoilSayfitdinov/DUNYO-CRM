@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, type ReactNode } from "react";
-import { Camera, CheckCircle, XCircle, AlertTriangle, Scan, Clock, Loader2, ArrowRight } from "lucide-react";
+import { Camera, CheckCircle, XCircle, AlertTriangle, Scan, Clock, Loader2, ArrowRight, MapPin } from "lucide-react";
 import { Html5QrcodeScanner } from "html5-qrcode";
-import { toast } from "sonner";
 import type { AxiosError } from "axios";
 import { useScan } from "@/modules/attendance";
+import { useGeolocation, type GeoCoords } from "@/shared/lib/useGeolocation";
+import { GeoPermissionSheet } from "@/shared/ui/GeoPermissionSheet";
 
 type ScanState = "idle" | "scanning" | "locating" | "success" | "duplicate" | "error";
 
@@ -25,25 +26,49 @@ function parseBranchId(text: string): string | null {
   return m ? m[0] : null;
 }
 
-/** Brauzer GPS'ini Promise sifatida oladi */
-function getPosition(): Promise<GeolocationPosition> {
-  return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
-      reject(new Error("Geolokatsiya qo'llab-quvvatlanmaydi"));
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(resolve, reject, {
-      enableHighAccuracy: true,
-      timeout: 10000,
-    });
-  });
-}
-
 export function Scanner() {
   const [scanState, setScanState] = useState<ScanState>("idle");
   const [result, setResult] = useState<{ status?: string; check_in?: string | null; check_out?: string | null } | null>(null);
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
   const scan = useScan();
+
+  // Geolokatsiya logikasi shu hook ichida (xato kodlari, holat, qayta urinish).
+  const geo = useGeolocation();
+  // Joylashuv ruxsati paneli ochiqmi?
+  const [geoSheetOpen, setGeoSheetOpen] = useState(false);
+  // Joylashuv olingach davom ettirish uchun, skanerlangan branch_id'ni saqlaymiz.
+  const pendingBranchId = useRef<string | null>(null);
+
+  // Olingan joylashuv bilan serverga skan yuborish (success/duplicate/error holatlarini boshqaradi).
+  const submitScan = (branchId: string, pos: GeoCoords) => {
+    scan.mutate(
+      { branch_id: branchId, latitude: pos.latitude, longitude: pos.longitude },
+      {
+        onSuccess: (data) => { setResult(data as any); setScanState("success"); },
+        onError: (err: AxiosError) =>
+          setScanState(err.response?.status === 409 ? "duplicate" : "error"),
+      },
+    );
+  };
+
+  // Joylashuvni so'raydi; muvaffaqiyatda skan yuboradi, xatoda ruxsat panelini ochadi.
+  const requestLocation = async (branchId: string) => {
+    pendingBranchId.current = branchId;
+    setScanState("locating");
+    try {
+      const pos = await geo.request();
+      setGeoSheetOpen(false);
+      submitScan(branchId, pos);
+    } catch {
+      // Xato ma'lumoti geo.error ichida — panelni ochib ko'rsatamiz.
+      setGeoSheetOpen(true);
+    }
+  };
+
+  // Panel ichidagi "Ruxsat berish" / "Qayta urinish" tugmasi.
+  const retryLocation = () => {
+    if (pendingBranchId.current) requestLocation(pendingBranchId.current);
+  };
 
   useEffect(() => {
     if (scanState === "scanning") {
@@ -74,30 +99,9 @@ export function Scanner() {
             return;
           }
 
-          // 2) GPS olamiz (geo-fence backend tomonda tekshiriladi)
-          setScanState("locating");
-          let pos: GeolocationPosition;
-          try {
-            pos = await getPosition();
-          } catch {
-            toast.error("Joylashuvni aniqlab bo'lmadi. GPS va ruxsatni tekshiring.");
-            setScanState("error");
-            return;
-          }
-
-          // 3) Hammasini serverga yuboramiz
-          scan.mutate(
-            {
-              branch_id: branchId,
-              latitude: pos.coords.latitude,
-              longitude: pos.coords.longitude,
-            },
-            {
-              onSuccess: (data) => { setResult(data as any); setScanState("success"); },
-              onError: (err: AxiosError) =>
-                setScanState(err.response?.status === 409 ? "duplicate" : "error"),
-            },
-          );
+          // 2) Joylashuvni so'raymiz (xato bo'lsa ruxsat paneli ochiladi).
+          //    Muvaffaqiyatda serverga yuborish requestLocation ichida bo'ladi.
+          requestLocation(branchId);
         },
         () => {
           // skanerlash davomidagi xatolarni e'tiborsiz qoldiramiz
@@ -175,12 +179,21 @@ export function Scanner() {
             </div>
           )}
 
-          {scanState === "locating" && (
+          {scanState === "locating" && !geoSheetOpen && (
             <StatusView
               tone="primary"
               icon={<Loader2 size={40} className="animate-spin" />}
               title="Joylashuv aniqlanmoqda…"
               desc="GPS ruxsatini bering va biroz kuting."
+            />
+          )}
+
+          {scanState === "locating" && geoSheetOpen && (
+            <StatusView
+              tone="error"
+              icon={<MapPin size={40} />}
+              title="Joylashuv kerak"
+              desc="Pastdagi oynadan ruxsat bering yoki qayta urinib ko'ring."
             />
           )}
 
@@ -266,6 +279,19 @@ export function Scanner() {
           ))}
         </ul>
       </div>
+
+      {/* Joylashuv ruxsati paneli — pastdan chiqadi */}
+      <GeoPermissionSheet
+        open={geoSheetOpen}
+        onOpenChange={(o) => {
+          setGeoSheetOpen(o);
+          // Foydalanuvchi panelni yopsa va joylashuv olinmagan bo'lsa — xato holatiga o'tamiz.
+          if (!o && scanState === "locating") setScanState("error");
+        }}
+        locating={geo.status === "locating"}
+        error={geo.error}
+        onRequest={retryLocation}
+      />
 
       <style>{`
         @keyframes scanline {

@@ -6,7 +6,9 @@
       "Bash(.venv/bin/alembic current *)",
       "Bash(.venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload)",
       "Bash(curl -s -o /dev/null -w \"local 4173 -> %{http_code}\\\\n\" -m5 http://localhost:4173/)",
-      "Bash(curl -s -o /dev/null -w \"tunnel -> %{http_code}\\\\n\" -m20 https://allocation-multimedia-alcohol-rates.trycloudflare.com/)"
+      "Bash(curl -s -o /dev/null -w \"tunnel -> %{http_code}\\\\n\" -m20 https://allocation-multimedia-alcohol-rates.trycloudflare.com/)",
+      "Bash(git push *)",
+      "Bash(git commit *)"
     ]
   }
 }

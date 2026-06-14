@@ -3,6 +3,8 @@ import { X, Building2, MapPin, Ruler, LocateFixed, Loader2, AlertCircle } from "
 import { useCreateBranch, useUpdateBranch } from "@/modules/branch";
 import type { Branch } from "@/modules/branch";
 import { MapPicker } from "@/shared/ui/MapPicker";
+import { useGeolocation } from "@/shared/lib/useGeolocation";
+import { GeoPermissionSheet } from "@/shared/ui/GeoPermissionSheet";
 
 const inputCls = "w-full text-sm border border-slate-200 rounded-lg px-3 py-2.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/60 transition-all bg-white";
 
@@ -12,15 +14,20 @@ export function BranchFormModal({ open, onClose, branch }: { open: boolean; onCl
   const [lat, setLat] = useState("");
   const [lng, setLng] = useState("");
   const [radius, setRadius] = useState("150");
-  const [locating, setLocating] = useState(false);
-  const [geoErr, setGeoErr] = useState("");
   const create = useCreateBranch();
   const update = useUpdateBranch();
   const pending = create.isPending || update.isPending;
 
+  // Geolokatsiya logikasi shu hook ichida (xato kodlari, holat, qayta urinish).
+  const geo = useGeolocation();
+  // Joylashuv ruxsati paneli ochiqmi?
+  const [geoSheetOpen, setGeoSheetOpen] = useState(false);
+  const locating = geo.status === "locating";
+
   useEffect(() => {
     if (!open) return;
-    setGeoErr("");
+    geo.reset();
+    setGeoSheetOpen(false);
     if (branch) {
       setName(branch.name);
       setLat(String(branch.latitude));
@@ -29,18 +36,23 @@ export function BranchFormModal({ open, onClose, branch }: { open: boolean; onCl
     } else {
       setName(""); setLat(""); setLng(""); setRadius("150");
     }
+    // geo.reset useCallback bilan barqaror — qayta-qayta ishga tushmaydi.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, branch]);
 
   if (!open) return null;
 
-  const useMyLocation = () => {
-    if (!navigator.geolocation) { setGeoErr("Brauzer geolokatsiyani qo'llab-quvvatlamaydi"); return; }
-    setLocating(true); setGeoErr("");
-    navigator.geolocation.getCurrentPosition(
-      (pos) => { setLat(pos.coords.latitude.toFixed(6)); setLng(pos.coords.longitude.toFixed(6)); setLocating(false); },
-      (err) => { setGeoErr(`Lokatsiyani olib bo'lmadi: ${err.message}`); setLocating(false); },
-      { enableHighAccuracy: true, timeout: 10000 },
-    );
+  // Joylashuvni so'raydi; muvaffaqiyatda koordinatalarni to'ldiradi, xatoda panel ochiladi.
+  const useMyLocation = async () => {
+    setGeoSheetOpen(true);
+    try {
+      const pos = await geo.request();
+      setLat(pos.latitude.toFixed(6));
+      setLng(pos.longitude.toFixed(6));
+      setGeoSheetOpen(false);
+    } catch {
+      // Xato ma'lumoti geo.error ichida — panel ochiq qoladi va xabarni ko'rsatadi.
+    }
   };
 
   const latN = parseFloat(lat);
@@ -108,9 +120,6 @@ export function BranchFormModal({ open, onClose, branch }: { open: boolean; onCl
               <input value={lat} onChange={(e) => setLat(e.target.value)} inputMode="decimal" aria-label="Kenglik (lat)" className={inputCls} placeholder="Kenglik (lat)" />
               <input value={lng} onChange={(e) => setLng(e.target.value)} inputMode="decimal" aria-label="Uzunlik (lng)" className={inputCls} placeholder="Uzunlik (lng)" />
             </div>
-            {geoErr && (
-              <p className="text-xs text-destructive flex items-center gap-1.5"><AlertCircle size={12} /> {geoErr}</p>
-            )}
           </div>
 
           <div className="space-y-1.5">
@@ -133,6 +142,15 @@ export function BranchFormModal({ open, onClose, branch }: { open: boolean; onCl
           </button>
         </div>
       </div>
+
+      {/* Joylashuv ruxsati paneli — pastdan chiqadi */}
+      <GeoPermissionSheet
+        open={geoSheetOpen}
+        onOpenChange={setGeoSheetOpen}
+        locating={locating}
+        error={geo.error}
+        onRequest={useMyLocation}
+      />
     </div>
   );
 }
