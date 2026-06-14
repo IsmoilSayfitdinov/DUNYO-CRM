@@ -17,7 +17,7 @@ from app.repositories.branch_repository import BranchRepository
 from app.repositories.employee_repository import EmployeeRepository
 from app.repositories.leader_repository import LeaderRepository
 from app.repositories.user_repository import UserRepository
-from app.schemas.employee import EmployeeListResponse, EmployeeInfo, EmployeeCreate, EmployeeUpdate
+from app.schemas.employee import EmployeeListResponse, EmployeeInfo, EmployeeCreate, EmployeeUpdate, MyProfileUpdate
 
 # Davomat baholashda "kelgan" deb hisoblanadigan statuslar (check-out qilingan
 # "left" ham KELGAN bo'ladi — aks holda tugagan ish kuni g'oyibdek baholanardi).
@@ -129,6 +129,33 @@ class EmployeeService:
         employee = await self.repo.get_by_user_id(user_id=user_id)
         if not employee:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Xodim topilmadi !")
+
+        info = EmployeeInfo.model_validate(employee)
+        info.score = await self._compute_score(employee.id)
+        return info
+
+    async def update_my_profile(self, user_id: UUID, data: MyProfileUpdate) -> EmployeeInfo:
+        # Xodim faqat O'ZINING profilini tahrirlaydi — id tashqaridan kelmaydi,
+        # token'dagi user_id'dan olinadi (IDOR'dan himoya).
+        employee = await self.repo.get_by_user_id(user_id=user_id)
+        if not employee:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Xodim topilmadi !")
+
+        update_fields = data.model_dump(exclude_unset=True)
+
+        # Username o'zgartirilsa — band emasligini tekshiramiz.
+        new_username = update_fields.get("username")
+        if new_username and new_username != employee.user.username:
+            existing = await self.user_repo.get_user_by_username(new_username)
+            if existing:
+                raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Bu foydalanuvchi nomi allaqachon band !")
+
+        # Faqat USER_FIELDS yoziladi — schema allaqachon cheklagan, bu ikkinchi qalqon.
+        for field, value in update_fields.items():
+            if field in self.USER_FIELDS:
+                setattr(employee.user, field, value)
+
+        await self.repo.database.commit()
 
         info = EmployeeInfo.model_validate(employee)
         info.score = await self._compute_score(employee.id)

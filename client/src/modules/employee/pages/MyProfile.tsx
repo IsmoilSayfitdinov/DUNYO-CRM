@@ -1,12 +1,13 @@
-import React from "react";
+import { useState } from "react";
 import { ScoreRing } from "@/shared/ui/ScoreRing";
-import { Phone, Calendar, Clock, Lock, DollarSign, Check, User } from "lucide-react";
+import { Phone, Calendar, Clock, Lock, DollarSign, Check, User, Pencil } from "lucide-react";
 import { EmptyState } from "@/shared/ui/EmptyState";
-import { useMyEmployee } from "@/modules/employee";
+import { useMyEmployee, EditProfileModal } from "@/modules/employee";
 
 
 export function MyProfile() {
   const { data: emp, isLoading, isError } = useMyEmployee();
+  const [editOpen, setEditOpen] = useState(false);
 
   if (isLoading) {
     return <EmptyState variant="loading" title="Yuklanmoqda…" description="Profil ma'lumotlaringiz olinmoqda" />;
@@ -67,8 +68,16 @@ export function MyProfile() {
               </div>
               <p className="text-slate-400 text-sm mt-1 truncate">{emp.position} · @{emp.user.username}</p>
             </div>
-            {/* Score */}
-            <ScoreRing score={emp.score} size={72} showLabel />
+            {/* Tahrirlash + Score */}
+            <div className="flex items-center gap-3 self-start sm:self-auto">
+              <button
+                onClick={() => setEditOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-primary/40 hover:text-primary transition-all active:scale-[0.97]"
+              >
+                <Pencil size={14} /> Tahrirlash
+              </button>
+              <ScoreRing score={emp.score} size={72} showLabel />
+            </div>
           </div>
 
           {/* Info pills */}
@@ -118,6 +127,9 @@ export function MyProfile() {
           </button>
         </div>
       </div>
+
+      {/* Profil tahrirlash modali */}
+      <EditProfileModal open={editOpen} onClose={() => setEditOpen(false)} employee={emp} />
     </div>
   );
 }

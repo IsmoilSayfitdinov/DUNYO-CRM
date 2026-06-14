@@ -1,11 +1,13 @@
-export type { Employee, CreateEmployeeDto, UpdateEmployeeDto } from "./types";
+export type { Employee, CreateEmployeeDto, UpdateEmployeeDto, UpdateMyProfileDto } from "./types";
 export type { EmployeeFormValues } from "./types/form";
 export { employeeApi } from "./api/employee-api";
 export { employeeKeys } from "./api/query-keys";
 export { useEmployees, useMyEmployee, useEmployee } from "./hooks/use-employee-queries";
 export { AddEditEmployeeModal } from "./components/AddEditEmployeeModal";
+export { EditProfileModal } from "./components/EditProfileModal";
 export { NfcEnrollModal } from "./components/NfcEnrollModal";
 export { useSaveEmployee } from "./hooks/use-save-employee";
+export { useUpdateMyProfile } from "./hooks/use-update-my-profile";
 export { useDeleteEmployee } from "./hooks/use-delete-employee";
 export { useSetEmployeeActive } from "./hooks/use-set-active";
 export { employees, managers, managerActivity, myEmployee } from "./constants/mock";

@@ -45,6 +45,14 @@ export interface CreateEmployeeDto {
   hourly_rate: number;
 }
 
+/** PATCH /employees/me tanasi — xodim O'ZINI tahrirlaydi (faqat shaxsiy maydonlar) */
+export interface UpdateMyProfileDto {
+  first_name?: string;
+  last_name?: string;
+  username?: string;
+  phone?: string;
+}
+
 /** PATCH/PUT /employees/{id} tanasi */
 export interface UpdateEmployeeDto {
   first_name?: string;

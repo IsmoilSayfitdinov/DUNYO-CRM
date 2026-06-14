@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Query
 from fastapi import status
 from app.model.user import User
 from app.schemas.attendance import AttendanceListResponse
-from app.schemas.employee import EmployeeUpdate, EmployeeListResponse, EmployeeInfo, EmployeeCreate
+from app.schemas.employee import EmployeeUpdate, EmployeeListResponse, EmployeeInfo, EmployeeCreate, MyProfileUpdate
 from app.services.attendance_services import AttendanceService
 from app.services.employee_services import EmployeeService
 from app.core.dependencies import require_role, get_current_user
@@ -20,6 +20,18 @@ async def my_profile(
     employeeServices: EmployeeService = Depends(),
 ):
     return await employeeServices.get_my_profile(user.id)
+
+
+# DIQQAT: bu route "/{employee_id}" PATCH'dan OLDIN turishi shart — aks holda
+# FastAPI "/me"ni employee_id="me" deb o'qiydi. Xodim faqat o'z shaxsiy
+# ma'lumotlarini (ism/familiya/username/telefon) o'zgartira oladi.
+@router.patch("/me", response_model=EmployeeInfo, dependencies=[Depends(require_role(Role.employee))])
+async def update_my_profile(
+    data: MyProfileUpdate,
+    user: User = Depends(get_current_user),
+    employeeServices: EmployeeService = Depends(),
+):
+    return await employeeServices.update_my_profile(user_id=user.id, data=data)
 
 
 @router.get("/", response_model=EmployeeListResponse, dependencies=[Depends(require_role(Role.leader))])

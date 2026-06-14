@@ -27,6 +27,16 @@ class EmployeeCreate(BaseModel):
     hourly_rate: Decimal = Field(default=Decimal("12000.00"), ge=0)
 
 
+class MyProfileUpdate(BaseModel):
+    """Xodim O'ZINI tahrirlashi uchun — faqat shaxsiy User maydonlari.
+    Maosh, rol, smena, faollik kabi maydonlar BU YERDA YO'Q (mass-assignment'dan
+    himoya): xodim ularni o'zgartira olmaydi, faqat rahbar EmployeeUpdate orqali."""
+    first_name: str | None = Field(None, min_length=1, max_length=128)
+    last_name: str | None = Field(None, min_length=1, max_length=128)
+    username: str | None = Field(None, min_length=3, max_length=50)
+    phone: str | None = Field(None, min_length=13, max_length=13)
+
+
 class EmployeeUpdate(BaseModel):
     # User fields
     first_name: str | None = None

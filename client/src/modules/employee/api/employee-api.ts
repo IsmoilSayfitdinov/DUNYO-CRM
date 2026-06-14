@@ -1,6 +1,6 @@
 import { apiClient } from "@/shared/lib/api";
 import type { Paginated } from "@/shared/lib/api";
-import type { Employee, CreateEmployeeDto, UpdateEmployeeDto, EmployeeListParams } from "../types";
+import type { Employee, CreateEmployeeDto, UpdateEmployeeDto, UpdateMyProfileDto, EmployeeListParams } from "../types";
 
 export const employeeApi = {
   /** GET /employees/ — barcha xodimlar (sahifalangan, filial filtri bilan) */
@@ -9,6 +9,10 @@ export const employeeApi = {
 
   /** GET /employees/me — mening xodim profilim */
   getMe: () => apiClient.get<Employee>("/employees/me").then((r) => r.data),
+
+  /** PATCH /employees/me — o'z profilimni tahrirlash (ism/familiya/username/telefon) */
+  updateMe: (dto: UpdateMyProfileDto) =>
+    apiClient.patch<Employee>("/employees/me", dto).then((r) => r.data),
 
   /** GET /employees/{id} */
   getById: (id: string) =>
