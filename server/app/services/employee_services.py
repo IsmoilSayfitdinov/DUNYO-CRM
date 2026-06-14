@@ -49,7 +49,7 @@ class EmployeeService:
     # ---------- authz yordamchilari ----------
 
     @staticmethod
-    def _is_superuser(caller: User) -> bool:
+    def _is_leader(caller: User) -> bool:
         return caller.role == Role.leader
 
     async def _require_leader(self, caller: User):
@@ -66,7 +66,7 @@ class EmployeeService:
         branch = await self.branch_repo.get_by_id(branch_id)
         if not branch or not branch.is_active:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Filial topilmadi yoki faol emas !")
-        if not self._is_superuser(caller) and leader_id is not None and branch.leader_id != leader_id:
+        if not self._is_leader(caller) and leader_id is not None and branch.leader_id != leader_id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Bu filial sizga tegishli emas !")
 
     # ---------- scoring ----------
@@ -74,7 +74,7 @@ class EmployeeService:
     async def get_employees(self, caller: User, limit: int, offset: int, branch_id: UUID | None = None) -> EmployeeListResponse:
         # Superuser — barcha xodimlar; oddiy rahbar — faqat o'z jamoasi (tenant izolyatsiya).
         # branch_id berilsa — faqat o'sha filial xodimlari (filial bo'yicha filter).
-        if self._is_superuser(caller):
+        if self._is_leader(caller):
             employees = await self.repo.get_all(limit=limit, offset=offset, branch_id=branch_id)
             total = await self.repo.count(branch_id=branch_id)
         else:
@@ -112,7 +112,7 @@ class EmployeeService:
         return compute_attendance_score(total, present, on_time)
 
     async def get_employee_by_id(self, caller: User, id: UUID) -> EmployeeInfo:
-        if self._is_superuser(caller):
+        if self._is_leader(caller):
             employee = await self.repo.get_by_id(id=id)
             if not employee:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Xodim topilmadi !")
@@ -137,7 +137,7 @@ class EmployeeService:
     async def create(self, caller: User, data: EmployeeCreate) -> EmployeeInfo:
         # Rahbarni aniqlash: superuser data.leader_user_id orqali boshqa rahbarga
         # ham yarata oladi; oddiy rahbar faqat O'ZIGA biriktiradi (IDOR'dan himoya).
-        if self._is_superuser(caller):
+        if self._is_leader(caller):
             if not data.leader_user_id:
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="leader_user_id majburiy !")
             leader = await self.leader_repo.get_by_user_id(data.leader_user_id)
@@ -182,7 +182,7 @@ class EmployeeService:
 
     async def update(self, caller: User, data: EmployeeUpdate, id: UUID) -> EmployeeInfo:
         # Egalik tekshiruvi (superuser bypass)
-        if self._is_superuser(caller):
+        if self._is_leader(caller):
             employee = await self.repo.get_by_id(id=id)
             if not employee:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Xodim topilmadi !")
@@ -205,7 +205,7 @@ class EmployeeService:
 
         # Rahbarni qayta biriktirish faqat superuserga ruxsat
         if "leader_user_id" in update_fields and update_fields["leader_user_id"]:
-            if not self._is_superuser(caller):
+            if not self._is_leader(caller):
                 raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Rahbarni qayta biriktirishga ruxsat yo'q !")
             new_leader = await self.leader_repo.get_by_user_id(update_fields["leader_user_id"])
             if not new_leader:
@@ -227,7 +227,7 @@ class EmployeeService:
         return await self.get_employee_by_id(caller, employee.id)
 
     async def delete(self, caller: User, id: UUID) -> bool:
-        if self._is_superuser(caller):
+        if self._is_leader(caller):
             employee = await self.repo.get_by_id(id=id)
             if not employee:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Xodim topilmadi !")
