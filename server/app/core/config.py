@@ -15,9 +15,14 @@ class Setting(BaseSettings):
         "https://hr.dunyosupermarket.uz",
         "https://shop.dunyosupermarket.uz",
         "https://api.dunyosupermarket.uz",
+        "https://dunyo-crm-client-production.up.railway.app",
+        "https://dunyo-crm-server-production.up.railway.app",
     ]
     # Host header himoyasi (TrustedHost)
-    ALLOWED_HOSTS: list[str] = ["api.dunyosupermarket.uz"]
+    ALLOWED_HOSTS: list[str] = [
+        "api.dunyosupermarket.uz",
+        "dunyo-crm-server-production.up.railway.app",
+    ]
 
     static_dir: str = 'static'
     image_dir: str = "static/images"
