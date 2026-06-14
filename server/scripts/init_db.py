@@ -32,7 +32,7 @@ async def init_db():
             phone=setting.SUPERUSER_PHONE,
             username=setting.SUPERUSER_USERNAME,
             password_hash=hash_password(setting.SUPERUSER_PASSWORD),
-            role=Role.superuser,
+            role=Role.leader,
             is_active=True
         )
         session.add(new_user)
