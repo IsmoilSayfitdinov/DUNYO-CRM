@@ -50,7 +50,7 @@ class EmployeeService:
 
     @staticmethod
     def _is_superuser(caller: User) -> bool:
-        return caller.role == Role.superuser
+        return caller.role == Role.leader
 
     async def _require_leader(self, caller: User):
         leader = await self.leader_repo.get_by_user_id(caller.id)
