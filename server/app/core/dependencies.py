@@ -58,8 +58,7 @@ async def get_current_user(
 
 def require_role(*allowed_roles: Role):
     async def role_checker(user: User = Depends(get_current_user)) -> User:
-        # Superuser — to'liq admin: barcha rol tekshiruvlaridan o'tadi.
-        if user.role == Role.superuser:
+        if user.role == Role.leader:
             return user
         if user.role not in allowed_roles:
             raise HTTPException(
