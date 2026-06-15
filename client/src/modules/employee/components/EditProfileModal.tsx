@@ -60,9 +60,13 @@ export function EditProfileModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center sm:p-4">
       <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-[calc(100vw-2rem)] sm:max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-[calc(100vw-2rem)] sm:max-w-lg bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200 max-h-[92vh] sm:max-h-none flex flex-col">
+        {/* Mobil drag handle — bottom-sheet ko'rinishi */}
+        <div className="sm:hidden flex justify-center pt-2.5 pb-1 shrink-0">
+          <span className="w-10 h-1.5 rounded-full bg-slate-200" />
+        </div>
         {/* Sarlavha */}
         <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-slate-200/50">
           <div className="flex items-center gap-3">
@@ -81,7 +85,7 @@ export function EditProfileModal({
         </div>
 
         {/* Forma */}
-        <div className="p-4 sm:p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+        <div className="p-4 sm:p-6 space-y-4 flex-1 sm:max-h-[75vh] overflow-y-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label htmlFor="pf-first" className="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
@@ -126,7 +130,7 @@ export function EditProfileModal({
         </div>
 
         {/* Tugmalar */}
-        <div className="flex items-center justify-end gap-3 px-4 sm:px-6 py-4 border-t border-slate-200/50 bg-slate-50">
+        <div className="flex items-center justify-end gap-3 px-4 sm:px-6 py-4 border-t border-slate-200/50 bg-slate-50 shrink-0 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <button
             onClick={onClose}
             disabled={update.isPending}

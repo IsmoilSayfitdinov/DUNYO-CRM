@@ -36,9 +36,13 @@ export function BranchQrModal({ open, branch, onClose }: { open: boolean; branch
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center sm:p-4">
       <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-[calc(100vw-2rem)] sm:max-w-sm bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-[calc(100vw-2rem)] sm:max-w-sm bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl border border-slate-200 overflow-hidden max-h-[92vh] sm:max-h-none flex flex-col animate-in fade-in slide-in-from-bottom-4 sm:zoom-in-95 duration-300">
+        {/* Mobil drag handle — bottom-sheet ko'rinishi */}
+        <div className="sm:hidden flex justify-center pt-2.5 pb-1 shrink-0">
+          <span className="w-10 h-1.5 rounded-full bg-slate-200" />
+        </div>
         <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-slate-200/50">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">

@@ -20,15 +20,19 @@ export function StatsCards({ avgRate, totalLate, totalAbsent, totalPresent, rang
       {cards.map((s) => {
         const Icon = s.icon;
         return (
-          <div key={s.label} className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-3 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center gap-3 mb-2 sm:mb-3">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `color-mix(in srgb, ${s.color}, transparent 90%)` }}>
-                <Icon size={16} style={{ color: s.color }} />
-              </div>
+          <div key={s.label} className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-3 sm:p-5 shadow-sm hover:shadow-md transition-shadow
+            flex flex-row items-center gap-3 sm:flex-col sm:items-stretch sm:gap-0">
+            {/* Ikonka — mobilда chapda, PC'da tepada */}
+            <div className="w-10 h-10 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 sm:mb-3" style={{ background: `color-mix(in srgb, ${s.color}, transparent 90%)` }}>
+              <Icon size={18} className="sm:hidden" style={{ color: s.color }} />
+              <Icon size={16} className="hidden sm:block" style={{ color: s.color }} />
             </div>
-            <div className="text-xl sm:text-2xl font-semibold text-slate-900 tabular-nums">{s.value}</div>
-            <div className="text-xs sm:text-sm text-slate-400 mt-0.5">{s.label}</div>
-            {rangeLabel && <div className="text-xs text-slate-400 mt-0.5 truncate">{rangeLabel}</div>}
+            {/* Matn bloki — mobilда ikonka yonida, PC'da ostida */}
+            <div className="min-w-0 flex-1">
+              <div className="text-xl sm:text-2xl font-semibold text-slate-900 tabular-nums leading-none">{s.value}</div>
+              <div className="text-xs sm:text-sm text-slate-400 mt-0.5 sm:mt-1 leading-tight">{s.label}</div>
+              {rangeLabel && <div className="text-xs text-slate-400 mt-0.5 hidden sm:block">{rangeLabel}</div>}
+            </div>
           </div>
         );
       })}

@@ -11,15 +11,19 @@ export function SummaryKpis({ summary, sumTotal, sumPaid, sumUnpaid, sumAvg }: a
       ].map((kpi) => {
         const Icon = kpi.icon;
         return (
-          <div key={kpi.label} className="bg-white rounded-xl border border-slate-200 p-5">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `color-mix(in srgb, ${kpi.color}, transparent 90%)` }}>
-                <Icon size={16} style={{ color: kpi.color }} />
-              </div>
+          <div key={kpi.label} className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-3 sm:p-5
+            flex flex-row items-center gap-3 sm:flex-col sm:items-stretch sm:gap-0">
+            {/* Ikonka — mobilда chapda, PC'da tepada */}
+            <div className="w-10 h-10 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 sm:mb-3" style={{ background: `color-mix(in srgb, ${kpi.color}, transparent 90%)` }}>
+              <Icon size={18} className="sm:hidden" style={{ color: kpi.color }} />
+              <Icon size={16} className="hidden sm:block" style={{ color: kpi.color }} />
             </div>
-            <div className="text-xl font-bold text-slate-900 leading-none mb-1">{kpi.value}</div>
-            <div className="text-sm text-slate-400">{kpi.label}</div>
-            <div className="text-xs text-slate-400 mt-0.5">{kpi.sub}</div>
+            {/* Matn bloki — mobilда ikonka yonida, PC'da ostida */}
+            <div className="min-w-0 flex-1">
+              <div className="text-lg sm:text-xl font-bold text-slate-900 leading-none mb-0.5 sm:mb-1">{kpi.value}</div>
+              <div className="text-xs sm:text-sm text-slate-400 leading-tight">{kpi.label}</div>
+              <div className="text-xs text-slate-400 mt-0.5 hidden sm:block">{kpi.sub}</div>
+            </div>
           </div>
         );
       })}

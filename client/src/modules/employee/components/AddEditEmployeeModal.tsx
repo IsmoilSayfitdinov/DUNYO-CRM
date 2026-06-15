@@ -118,9 +118,13 @@ export function AddEditEmployeeModal({ open, employee, onClose, onSave, isSaving
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center sm:p-4">
       <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-[calc(100vw-2rem)] sm:max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative w-full sm:max-w-2xl bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl border border-slate-200 overflow-hidden max-h-[92vh] sm:max-h-none flex flex-col animate-in fade-in slide-in-from-bottom-4 sm:zoom-in-95 duration-300">
+        {/* Mobil "tortish" chizig'i (drag handle) — bottom-sheet ko'rinishi */}
+        <div className="sm:hidden flex justify-center pt-2.5 pb-1 shrink-0">
+          <span className="w-10 h-1.5 rounded-full bg-slate-200" />
+        </div>
         <div className="flex items-center justify-between px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-200/50">
           <div>
             <h2 className="text-base sm:text-lg font-semibold text-slate-900">
@@ -135,8 +139,8 @@ export function AddEditEmployeeModal({ open, employee, onClose, onSave, isSaving
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-5 max-h-[60vh] sm:max-h-[65vh] overflow-y-auto">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col min-h-0 flex-1">
+          <div className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-5 flex-1 sm:max-h-[65vh] overflow-y-auto">
             <FormField label="Ism *" icon={<User size={12} className="text-slate-400" />} error={errors.first_name?.message}>
               <input {...register("first_name")} className={inputCls} placeholder="Jasur" />
             </FormField>
@@ -228,14 +232,15 @@ export function AddEditEmployeeModal({ open, employee, onClose, onSave, isSaving
             </FormField>
           </div>
 
-          <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-t border-slate-200/50 bg-slate-50">
-            <span className="text-xs text-slate-400">* majburiy maydonlar</span>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button type="button" onClick={onClose} disabled={isSaving} className="px-4 py-2 text-sm rounded-lg border border-slate-200 text-slate-700 hover:bg-white transition-all disabled:opacity-50 font-medium">
+          <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-slate-200/50 bg-slate-50 shrink-0
+            flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+            <span className="text-xs text-slate-400 text-center sm:text-left">* majburiy maydonlar</span>
+            <div className="flex items-center gap-3">
+              <button type="button" onClick={onClose} disabled={isSaving} className="flex-1 sm:flex-none px-4 py-2.5 sm:py-2 text-sm rounded-xl sm:rounded-lg border border-slate-200 text-slate-700 hover:bg-white transition-all disabled:opacity-50 font-medium">
                 Bekor qilish
               </button>
               <button type="submit" disabled={isSaving}
-                className="px-5 py-2 text-sm rounded-lg font-medium text-white transition-all min-w-[120px] flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 disabled:opacity-70">
+                className="flex-[1.5] sm:flex-none px-5 py-2.5 sm:py-2 text-sm rounded-xl sm:rounded-lg font-semibold text-white transition-all sm:min-w-[120px] flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 disabled:opacity-70 shadow-lg shadow-primary/20">
                 {isSaving ? (
                   <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />{isEdit ? "Saqlanmoqda…" : "Qo'shilmoqda…"}</>
                 ) : isEdit ? "O'zgarishlarni saqlash" : "Xodim qo'shish"}

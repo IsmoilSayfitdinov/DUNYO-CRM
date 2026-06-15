@@ -61,9 +61,9 @@ export function EmployeeProfileHeader({
           <p className="text-slate-400 text-sm mt-1 truncate">{emp.position} · @{emp.user.username}</p>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-4 shrink-0 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100">
           <ScoreRing score={emp.score} size={60} showLabel />
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 flex-1 sm:flex-none">
             <button onClick={onEdit} className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold bg-white border border-slate-200 rounded-xl text-slate-700 hover:bg-slate-50 shadow-sm transition-all">
               <Pencil size={14} /> Tahrirlash
             </button>

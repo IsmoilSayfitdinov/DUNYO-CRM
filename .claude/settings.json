@@ -8,7 +8,26 @@
       "Bash(curl -s -o /dev/null -w \"local 4173 -> %{http_code}\\\\n\" -m5 http://localhost:4173/)",
       "Bash(curl -s -o /dev/null -w \"tunnel -> %{http_code}\\\\n\" -m20 https://allocation-multimedia-alcohol-rates.trycloudflare.com/)",
       "Bash(git push *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(cd /home/ismoil/Desktop/dunyosupermarket/server)",
+      "Bash(.venv/bin/python -c \"import docx; from PIL import Image; print\\('python-docx + Pillow: BOR'\\)\")",
+      "Bash(.venv/bin/python -c \"import docx; print\\('python-docx: BOR'\\)\")",
+      "Bash(.venv/bin/python -c \"from PIL import Image; print\\('Pillow: BOR'\\)\")",
+      "Bash(timeout 90 libreoffice --headless --convert-to pdf --outdir /tmp ~/Downloads/QR-Yashnabod.docx)",
+      "Bash(/tmp/docx-venv/bin/python -c ' *)",
+      "Bash(pdftoppm -png -r 90 -f 1 -l 1 /tmp/QR-Yashnabod.pdf /tmp/qr-preview)",
+      "Bash(/tmp/docx-venv/bin/python /tmp/make_qr_rich.py)",
+      "Bash(/tmp/docx-venv/bin/python /tmp/assemble_docx.py)",
+      "Bash(rm -f ~/Downloads/QR-A.docx ~/Downloads/QR-B.docx ~/Downloads/QR-C.docx)",
+      "Bash(/tmp/docx-venv/bin/python /tmp/assemble_docx.py && echo \"\" && rm -f ~/Downloads/QR-A.docx ~/Downloads/QR-B.docx ~/Downloads/QR-C.docx 2>/dev/null; echo \"eski variantlar tozalandi\" && echo \"\" && ls -la ~/Downloads/QR-Yashnabod.docx)",
+      "Bash(timeout 60 libreoffice --headless --convert-to pdf --outdir /tmp ~/Downloads/QR-Yashnabod.docx)",
+      "Bash(pdftoppm -png -r 90 -f 1 -l 1 /tmp/QR-Yashnabod.pdf /tmp/final-check)",
+      "Bash(docker --version)",
+      "Bash(docker compose *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173)"
+    ],
+    "additionalDirectories": [
+      "/home/ismoil/Downloads"
     ]
   }
 }

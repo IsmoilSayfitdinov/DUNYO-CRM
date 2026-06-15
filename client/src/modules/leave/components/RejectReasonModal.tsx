@@ -30,9 +30,13 @@ export function RejectReasonModal({ open, employeeName, leaveType, onConfirm, on
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center sm:p-4">
       <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={handleClose} />
-      <div className="relative w-full max-w-[calc(100vw-2rem)] sm:max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
+      <div className="relative w-full max-w-[calc(100vw-2rem)] sm:max-w-md bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl border border-slate-200 overflow-hidden max-h-[92vh] sm:max-h-none flex flex-col">
+        {/* Mobil drag handle — bottom-sheet ko'rinishi */}
+        <div className="sm:hidden flex justify-center pt-2.5 pb-1 shrink-0">
+          <span className="w-10 h-1.5 rounded-full bg-slate-200" />
+        </div>
         <div className="flex items-center justify-between px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-200/50">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center">
@@ -61,7 +65,7 @@ export function RejectReasonModal({ open, employeeName, leaveType, onConfirm, on
           {error && <p className="text-xs text-red-500 mt-1.5">{error}</p>}
           <p className="text-xs text-slate-400 mt-2">Bu xabar xodimga bildirishnomasida ko'rinadi.</p>
         </div>
-        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 px-4 sm:px-6 py-3 sm:py-4 border-t border-slate-200/50 bg-slate-50">
+        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 px-4 sm:px-6 py-3 sm:py-4 border-t border-slate-200/50 bg-slate-50 shrink-0 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <button onClick={handleClose} className="px-4 py-2.5 min-h-[40px] text-sm rounded-lg border border-slate-200 text-slate-700 hover:bg-white transition-all">Bekor qilish</button>
           <button onClick={handleConfirm} className="px-5 py-2.5 min-h-[40px] text-sm rounded-lg font-medium text-white bg-red-600 hover:bg-red-700 transition-all">
             So'rovni rad etish
