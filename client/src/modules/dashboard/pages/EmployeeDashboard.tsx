@@ -97,24 +97,24 @@ export function EmployeeDashboard() {
         </div>
       </div>
 
-      {/* Today summary */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+      {/* Today summary — mobilда ixcham (ikon chapda, matn o'ngда), sm+ vertikal */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         {[
           { label: "Oxirgi kirish", value: lastCheckIn || "—", sub: "Kirish vaqti", icon: Clock },
           { label: "Intizom bali", value: String(emp?.score ?? "—"), sub: "Ko'rsatkich", icon: TrendingUp },
           { label: "Vazifalar", value: String(myTasks.length), sub: `${overdueTasks.length} ta muddati o'tgan`, icon: FileText },
           { label: "Soatlik stavka", value: emp ? Number(emp.hourly_rate).toLocaleString() : "—", sub: "so'm/soat", icon: Calendar },
         ].map((s) => (
-          <div key={s.label} className="bg-white border border-slate-200 rounded-xl sm:rounded-2xl p-3 sm:p-5 transition-all hover:shadow-xl hover:shadow-red-500/5 group">
-            <div className="flex items-start justify-between mb-4">
-              <div className="w-12 h-12 rounded-2xl bg-red-50/50 flex items-center justify-center transition-colors group-hover:scale-110 duration-300">
-                <s.icon size={22} style={{ color: "var(--primary)" }} />
-              </div>
+          <div key={s.label} className="bg-white border border-slate-200 rounded-xl sm:rounded-2xl p-3 sm:p-5 transition-all hover:shadow-xl hover:shadow-red-500/5 group
+            flex flex-row items-center gap-3 sm:flex-col sm:items-stretch sm:gap-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-red-50/50 flex items-center justify-center shrink-0 sm:mb-4 transition-transform group-hover:scale-110 duration-300">
+              <s.icon size={20} className="sm:hidden" style={{ color: "var(--primary)" }} />
+              <s.icon size={22} className="hidden sm:block" style={{ color: "var(--primary)" }} />
             </div>
-            <div>
-              <div className="text-2xl font-black text-slate-900 mb-1">{s.value}</div>
-              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{s.label}</div>
-              <div className="text-[11px] font-medium text-slate-400 mt-1 italic">{s.sub}</div>
+            <div className="min-w-0 flex-1">
+              <div className="text-xl sm:text-2xl font-black text-slate-900 mb-0.5 sm:mb-1 leading-none tabular-nums truncate">{s.value}</div>
+              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wide sm:tracking-widest leading-tight">{s.label}</div>
+              <div className="text-[11px] font-medium text-slate-400 mt-1 italic hidden sm:block">{s.sub}</div>
             </div>
           </div>
         ))}

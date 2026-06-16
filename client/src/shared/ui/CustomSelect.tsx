@@ -107,7 +107,7 @@ export function CustomSelect({
 
         <SelectPrimitive.Portal>
           <SelectPrimitive.Content
-            className="z-50 min-w-[var(--radix-select-trigger-width)] max-h-96 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-200 dark:bg-slate-50/95 backdrop-blur-xl animate-in fade-in-0 zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=top]:slide-in-from-bottom-2"
+            className="z-[70] min-w-[var(--radix-select-trigger-width)] max-h-96 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-200 dark:bg-slate-50/95 backdrop-blur-xl animate-in fade-in-0 zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=top]:slide-in-from-bottom-2"
             position="popper"
             sideOffset={8}
           >
