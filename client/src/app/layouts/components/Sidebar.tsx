@@ -1,7 +1,7 @@
 import { NavLink } from "react-router";
 import { Building2, LogOut, X } from "lucide-react";
 import { getInitials } from "./config";
-
+import Logo from "../../../../public/logo.svg"
 export function Sidebar({
   cfg,
   role,
@@ -29,7 +29,7 @@ export function Sidebar({
         <div className="flex items-center justify-between px-4 sm:px-5 pt-5 sm:pt-6 pb-4 sm:pb-5 border-b border-white/10">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary">
-              <Building2 size={16} className="text-primary-foreground" />
+             <img src={Logo} alt="DUNYO CRM" />
             </div>
             <div>
               <div className="text-white font-semibold text-sm leading-tight">DUNYO CRM</div>

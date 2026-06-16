@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { useLogin } from "../hooks/use-login";
 import {
-  Building2, User, Lock, Eye, EyeOff, ArrowRight,
+  User, Lock, Eye, EyeOff, ArrowRight,
   AlertCircle, Loader2, Shield, Users, BarChart3, Clock, CheckCircle2,
 } from "lucide-react";
+import Logo from "../../../../public/logo.svg"
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -62,8 +63,8 @@ export function Login() {
 
         {/* Logo */}
         <div className="relative z-10 flex items-center gap-3" style={rise(0)}>
-          <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center">
-            <Building2 size={24} className="text-white" />
+          <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center overflow-hidden">
+            <img src="/logo.svg" alt="Dunyo CRM" className="w-8 h-8 object-contain" />
           </div>
           <div className="text-2xl font-extrabold tracking-tight">
             <span className="text-white">DUNYO</span>
@@ -156,8 +157,8 @@ export function Login() {
           {/* Mobile logo */}
           <div className="lg:hidden text-center mb-6" style={rise(0)}>
             <div className="inline-flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-red-200">
-                <Building2 size={20} className="text-white" />
+              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-red-200 overflow-hidden">
+                <img src="/logo.svg" alt="Dunyo CRM" className="w-7 h-7 object-contain" />
               </div>
               <div className="text-lg font-extrabold tracking-tight">
                 <span className="text-slate-900">DUNYO</span>

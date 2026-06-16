@@ -74,25 +74,23 @@ export function ChangePasswordModal({ open, onClose }: { open: boolean; onClose:
         role="dialog"
         aria-modal="true"
         aria-labelledby="change-password-title"
-        className="relative w-full max-w-[calc(100vw-2rem)] sm:max-w-md bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200 max-h-[92vh] sm:max-h-none flex flex-col"
+        className="relative w-full max-w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200 max-h-[92vh] sm:max-h-none flex flex-col"
       >
         {/* Mobil drag handle — bottom-sheet ko'rinishi */}
         <div className="sm:hidden flex justify-center pt-2.5 pb-1 shrink-0">
           <span className="w-10 h-1.5 rounded-full bg-slate-200" />
         </div>
-        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-slate-200/50">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-              <Lock size={18} className="text-primary" />
-            </div>
-            <h3 id="change-password-title" className="text-base font-semibold text-slate-900">Parolni o'zgartirish</h3>
+        <div className="flex items-start justify-between gap-3 px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-200/50">
+          <div className="min-w-0">
+            <h3 id="change-password-title" className="text-base sm:text-lg font-semibold text-slate-900">Parolni o'zgartirish</h3>
+            <p className="text-sm text-slate-400 mt-0.5">Hisobingiz parolini yangilang</p>
           </div>
-          <button onClick={onClose} aria-label="Yopish" className="w-9 h-9 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all">
+          <button onClick={onClose} aria-label="Yopish" className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all shrink-0">
             <X size={16} />
           </button>
         </div>
 
-        <div className="p-4 sm:p-6 space-y-4 flex-1 overflow-y-auto">
+        <div className="p-4 sm:p-6 space-y-4 flex-1 min-h-0 overflow-y-auto">
           {field("Joriy parol", current, setCurrent, "Joriy parolingiz")}
           {field("Yangi parol", next, setNext, "Kamida 8 ta belgi")}
           {tooShort && <p className="text-xs text-destructive -mt-2">Parol kamida 8 ta belgidan iborat bo'lsin</p>}
@@ -103,12 +101,12 @@ export function ChangePasswordModal({ open, onClose }: { open: boolean; onClose:
           </p>
         </div>
 
-        <div className="flex items-center justify-end gap-3 px-4 sm:px-6 py-4 border-t border-slate-200/50 bg-slate-50 shrink-0 pb-[max(1rem,env(safe-area-inset-bottom))]">
-          <button onClick={onClose} disabled={change.isPending} className="px-4 py-2 min-h-[44px] text-sm rounded-lg border border-slate-200 text-slate-700 hover:bg-white transition-all disabled:opacity-50 font-medium">
+        <div className="flex items-center gap-3 px-4 sm:px-6 py-3.5 sm:py-4 border-t border-slate-100 bg-slate-50/80 shrink-0 pb-[max(0.875rem,env(safe-area-inset-bottom))]">
+          <button onClick={onClose} disabled={change.isPending} className="flex-1 sm:flex-none px-4 py-2.5 sm:py-2 text-sm rounded-xl border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 active:scale-[0.98] transition-all disabled:opacity-50 font-medium">
             Bekor qilish
           </button>
           <button onClick={submit} disabled={!valid || change.isPending}
-            className="px-5 py-2 min-h-[44px] text-sm rounded-lg font-medium text-white bg-primary hover:bg-primary/90 transition-all disabled:opacity-50 inline-flex items-center justify-center gap-2 min-w-[120px]">
+            className="flex-[1.5] sm:flex-none px-5 py-2.5 sm:py-2 text-sm rounded-xl font-semibold text-white bg-primary hover:bg-primary/90 active:scale-[0.98] transition-all disabled:opacity-50 inline-flex items-center justify-center gap-2 sm:min-w-[130px] shadow-lg shadow-primary/25">
             {change.isPending ? <><Loader2 size={15} className="animate-spin" /> Saqlanmoqda…</> : "O'zgartirish"}
           </button>
         </div>

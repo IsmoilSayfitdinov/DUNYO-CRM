@@ -58,27 +58,22 @@ export function ReminderFormModal({ open, onClose, onConfirm, employees, busy = 
     <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center sm:p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="relative w-full max-w-[calc(100vw-2rem)] sm:max-w-md bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200 max-h-[92vh] sm:max-h-none flex flex-col">
+      <div className="relative w-full max-w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200 max-h-[92vh] sm:max-h-none flex flex-col">
         {/* Mobil drag handle — bottom-sheet ko'rinishi */}
         <div className="sm:hidden flex justify-center pt-2.5 pb-1 shrink-0">
           <span className="w-10 h-1.5 rounded-full bg-slate-200" />
         </div>
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200/50">
-          <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isWarning ? "bg-amber-50 text-amber-600" : "bg-blue-50 text-blue-600"}`}>
-              {isWarning ? <AlertTriangle size={20} /> : <Bell size={20} />}
-            </div>
-            <div>
-              <h3 className="text-base sm:text-lg font-bold text-slate-900">Xodimga eslatma</h3>
-              <p className="text-xs text-slate-400">Xodimga xabar/ogohlantirish yuboring</p>
-            </div>
+        <div className="flex items-start justify-between gap-3 px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-200/50">
+          <div className="min-w-0">
+            <h3 className="text-base sm:text-lg font-semibold text-slate-900">Xodimga eslatma</h3>
+            <p className="text-sm text-slate-400 mt-0.5">Xodimga xabar/ogohlantirish yuboring</p>
           </div>
-          <button onClick={onClose} aria-label="Yopish" className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
-            <X size={18} />
+          <button onClick={onClose} aria-label="Yopish" className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all shrink-0">
+            <X size={16} />
           </button>
         </div>
 
-        <div className="p-4 sm:p-6 space-y-4 flex-1 sm:max-h-[70vh] overflow-y-auto">
+        <div className="p-4 sm:p-6 space-y-4 flex-1 min-h-0 sm:max-h-[70vh] overflow-y-auto">
           {/* Severity toggle */}
           <div className="flex p-1 bg-slate-100 rounded-xl">
             <button
@@ -131,14 +126,14 @@ export function ReminderFormModal({ open, onClose, onConfirm, employees, busy = 
           </div>
         </div>
 
-        <div className="px-4 sm:px-6 py-3 sm:py-4 bg-slate-50 border-t border-slate-200/50 flex items-center justify-end gap-3 shrink-0 pb-[max(1rem,env(safe-area-inset-bottom))]">
-          <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 rounded-xl transition-all">
+        <div className="flex items-center gap-3 px-4 sm:px-6 py-3.5 sm:py-4 border-t border-slate-100 bg-slate-50/80 shrink-0 pb-[max(0.875rem,env(safe-area-inset-bottom))]">
+          <button onClick={onClose} className="flex-1 sm:flex-none px-4 py-2.5 sm:py-2 text-sm rounded-xl border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 active:scale-[0.98] transition-all disabled:opacity-50 font-medium">
             Bekor qilish
           </button>
           <button
             onClick={handleConfirm}
             disabled={!valid || busy}
-            className={`px-6 py-2 text-sm font-bold text-white rounded-xl shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:shadow-none ${isWarning ? "bg-amber-600 hover:bg-amber-700 shadow-amber-600/20" : "bg-blue-600 hover:bg-blue-700 shadow-blue-600/20"}`}
+            className="flex-[1.5] sm:flex-none px-5 py-2.5 sm:py-2 text-sm rounded-xl font-semibold text-white bg-primary hover:bg-primary/90 active:scale-[0.98] transition-all disabled:opacity-50 inline-flex items-center justify-center gap-2 sm:min-w-[130px] shadow-lg shadow-primary/25"
           >
             {busy ? "Yuborilmoqda…" : "Yuborish"}
           </button>

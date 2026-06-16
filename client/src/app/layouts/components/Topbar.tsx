@@ -2,6 +2,7 @@ import { Building2, Bell, Menu, Clock } from "lucide-react";
 import { getInitials } from "./config";
 import { GlobalSearch } from "./GlobalSearch";
 import { useUnreadCount, useNotifications, useMarkAllRead } from "@/modules/notification";
+import Logo from "../../../../public/logo.svg"
 
 const fmtTime = (iso: string) => new Date(iso).toLocaleString("uz-UZ", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
 
@@ -32,8 +33,8 @@ export function Topbar({
 
       {/* Logo text on mobile */}
       <div className="lg:hidden flex items-center gap-2 min-w-0">
-        <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-primary">
-          <Building2 size={14} className="text-primary-foreground" />
+        <div className="w-7 h-7 rounded-lg flex items-center justify-center">
+          <img src={Logo} alt="Dunyo CRM" />
         </div>
         <span className="text-sm font-bold text-slate-800 truncate">DUNYO CRM</span>
       </div>

@@ -47,9 +47,10 @@ export function MoreDrawer({
           </button>
         </div>
 
-        {/* More nav items */}
-        <div className="overflow-y-auto" style={{ maxHeight: "calc(60vh - 100px)" }}>
-          <div className="px-3 py-2 grid grid-cols-2 gap-2">
+        {/* More nav items — kontentga qarab tabiiy balandlik (pastда bo'sh joy qolmaydi).
+            Ko'p item bo'lsa tashqi panel 60vh'da cheklanib, shu blok scroll bo'ladi. */}
+        <div className="overflow-y-auto">
+          <div className="px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] grid grid-cols-2 gap-2">
             {moreItems.map((item: any) => {
               const Icon = item.icon;
               const active = isActive(item);
