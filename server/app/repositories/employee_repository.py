@@ -5,6 +5,7 @@ from sqlalchemy.orm import selectinload
 
 from app.db.database import SessionsDep
 from app.model.employee import Employee
+from app.model.leader import Leader
 
 
 class EmployeeRepository:
@@ -38,7 +39,7 @@ class EmployeeRepository:
     async def get_by_user_id(self, user_id: UUID) -> Employee | None:
         query = (
             select(Employee)
-            .options(selectinload(Employee.user))
+            .options(selectinload(Employee.user), selectinload(Employee.leader))
             .where(Employee.user_id == user_id)
             .where(Employee.deleted_at.is_(None))
         )

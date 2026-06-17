@@ -1,4 +1,4 @@
-import { Wallet, DollarSign, Award } from "lucide-react";
+import { Wallet, DollarSign, Plus } from "lucide-react";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import type { SalaryHistory } from "@/modules/salary";
 
@@ -6,11 +6,11 @@ const M = (n: number) => (n / 1_000_000).toFixed(2);
 
 interface Props {
   salaryData?: SalaryHistory[];
-  /** To'lanmagan oy yozuviga premiya qo'shish (real salary_id bilan). */
-  onAdjustBonus?: (salaryId: string) => void;
+  /** Avans/premiya berish — oylik hisoblanmasa ham (itemli tizim, salary_id shart emas). */
+  onGiveAdjustment?: () => void;
 }
 
-export function SalaryHistoryCard({ salaryData, onAdjustBonus }: Props) {
+export function SalaryHistoryCard({ salaryData, onGiveAdjustment }: Props) {
   const rows = (salaryData ?? []).map((s) => ({
     id: s.id,
     month: String(s.month).slice(0, 7),
@@ -23,9 +23,19 @@ export function SalaryHistoryCard({ salaryData, onAdjustBonus }: Props) {
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 p-3 sm:p-5">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-slate-900">Ish haqi tarixi</h3>
-        {rows.length > 0 && <span className="text-xs font-medium text-slate-400">{rows.length} oy</span>}
+      <div className="flex items-center justify-between gap-2 mb-4">
+        <div className="flex items-center gap-2 min-w-0">
+          <h3 className="font-semibold text-slate-900">Ish haqi tarixi</h3>
+          {rows.length > 0 && <span className="text-xs font-medium text-slate-400">{rows.length} oy</span>}
+        </div>
+        {onGiveAdjustment && (
+          <button
+            onClick={onGiveAdjustment}
+            className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-bold hover:opacity-90 active:scale-[0.98] transition-all shadow-sm shadow-primary/20"
+          >
+            <Plus size={14} /> Avans / Premiya
+          </button>
+        )}
       </div>
 
       <div className="space-y-2 max-h-[600px] overflow-y-auto pr-1 -mr-1">
@@ -50,14 +60,6 @@ export function SalaryHistoryCard({ salaryData, onAdjustBonus }: Props) {
               <span className={`text-[9px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider ${s.isPaid ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-amber-50 text-amber-700 border border-amber-200"}`}>
                 {s.isPaid ? "To'langan" : "Kutilmoqda"}
               </span>
-              {!s.isPaid && onAdjustBonus && (
-                <button
-                  onClick={() => onAdjustBonus(s.id)}
-                  className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-bold text-success px-2.5 py-1.5 -mr-1 rounded-lg hover:bg-success/10 active:bg-success/15 transition-colors"
-                >
-                  <Award size={11} /> Premiya
-                </button>
-              )}
             </div>
           </div>
         ))}

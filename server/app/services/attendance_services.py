@@ -20,6 +20,7 @@ from app.repositories.leader_repository import LeaderRepository
 from app.repositories.user_repository import UserRepository
 from app.schemas.attendance import AttendanceInfo, AttendanceUpdate, ScanRequest, AttendanceListResponse, AttendanceTrendItem, WeeklyAttendanceItem, AttendanceReportRow
 from app.services.notification_services import NotificationService
+from app.model.employee import Employee
 
 logger = logging.getLogger("app.attendance")
 
@@ -148,7 +149,7 @@ class AttendanceService:
 
         return attendance_active
 
-    async def _verify_location(self, employee, data: ScanRequest):
+    async def _verify_location(self, employee: Employee, data: ScanRequest):
         # Xodimga filial biriktirilganmi?
         if employee.branch_id is None:
             raise HTTPException(
@@ -185,6 +186,11 @@ class AttendanceService:
         dist = distance_meters(data.latitude, data.longitude, branch.latitude, branch.longitude)
         # Qo'shimcha himoya: masofa chekli son bo'lmasa (NaN/inf) — rad etamiz.
         if not math.isfinite(dist) or dist > branch.radius_meters:
+            await self.notif.notify(
+                employee.leader.user_id, title=f"{employee.user.first_name} boshqa manzildan QR code qilishga urindi !",
+                body=f"uzoqlik: {int(dist) if math.isfinite(dist) else '∞'}m !",
+                type="attendance", link="/",
+            )
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Siz magazinda emassiz (uzoqlik: {int(dist) if math.isfinite(dist) else '∞'}m) !"
@@ -286,8 +292,7 @@ class AttendanceService:
 
         await self._verify_location(employee, data)
         await self._get_active_attendance(employee_id=employee.id, method="check-in")
-        # Faqat HAQIQIY davomat (came/late/left) limitga hisoblanadi — absent/leave
-        # placeholder'i check-in'ni bloklamaydi.
+
         count_attendance = await self.repo.get_today_attended_count(employee_id=employee.id)
 
         if count_attendance >= self.MAX_DAILY_ATTENDANCE:

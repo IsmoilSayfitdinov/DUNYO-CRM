@@ -5,15 +5,18 @@ import { toHHMM, ATTENDANCE_BADGE, STATUS_TO_BACKEND } from "@/shared/utils";
 import { Nfc } from "lucide-react";
 import { useEmployee, AddEditEmployeeModal, NfcEnrollModal, useSaveEmployee, useSetEmployeeActive } from "@/modules/employee";
 import { useEmployeeAttendance, EditAttendanceModal, useUpdateAttendance } from "@/modules/attendance";
-import { useEmployeeSalary, useCalculateSalary, usePaySalary, useAdjustSalary, SalaryAdjustmentModal } from "@/modules/salary";
+import { useEmployeeSalary, useCalculateSalary, usePaySalary, useGiveAdjustment, useAdjustments, SalaryAdjustmentModal } from "@/modules/salary";
 import {
   EmployeeProfileHeader,
   EmployeeStatsGrid,
   AttendanceCalendar,
   SalaryHistoryCard,
+  EmployeeAdjustmentsCard,
   AttendanceRecordsTable,
   ManagerNotes,
 } from "../components/employee-detail";
+
+const MONTHS_UZ = ["Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun", "Iyul", "Avgust", "Sentabr", "Oktabr", "Noyabr", "Dekabr"];
 
 export function EmployeeDetail() {
   
@@ -39,10 +42,13 @@ export function EmployeeDetail() {
   const updateAttendance = useUpdateAttendance(editRecord?.id ?? "");
   const calculateSalary = useCalculateSalary();
   const paySalary = usePaySalary();
-  const adjustSalary = useAdjustSalary();
-  const [adjustTarget, setAdjustTarget] = useState<{ salaryId: string; name: string } | null>(null);
+  const giveAdjustment = useGiveAdjustment();
+  // Avans/premiya modali ochiq bo'lganda — true (oylik hisoblanmasa ham berish mumkin).
+  const [adjustOpen, setAdjustOpen] = useState(false);
+  // Shu xodimning tanlangan oydagi avans/premiyalari — ham modalda, ham alohida kartada.
+  const { data: periodAdjustments, isLoading: adjLoading } = useAdjustments(id, period.year, period.month);
 
-  useEffect(() => { setEditRecord(null); setModalOpen(false); setNfcOpen(false); }, [id]);
+  useEffect(() => { setEditRecord(null); setModalOpen(false); setNfcOpen(false); setAdjustOpen(false); }, [id]);
 
   if (isLoading) {
     return <EmptyState variant="loading" title="Yuklanmoqda…" description="Xodim ma'lumotlari olinmoqda" />;
@@ -52,6 +58,7 @@ export function EmployeeDetail() {
   }
 
   const fullName = `${emp.user.first_name} ${emp.user.last_name}`.trim() || emp.user.username;
+  const periodLabel = `${MONTHS_UZ[period.month - 1]} ${period.year}`;
 
   // Tanlangan oy (kalendardagi period) uchun ish haqi yozuvi — Hisoblash/To'lash holatini shu belgilaydi.
   const pad2 = (n: number) => String(n).padStart(2, "0");
@@ -69,11 +76,19 @@ export function EmployeeDetail() {
   const handlePaySalary = () => {
     if (periodSalary) paySalary.mutate({ employeeId: emp.id, salaryId: periodSalary.id });
   };
-  const handleAdjustConfirm = (adjustment: { amount: number }) => {
-    if (!adjustTarget) return;
-    adjustSalary.mutate(
-      { salaryId: adjustTarget.salaryId, bonus: adjustment.amount },
-      { onSuccess: () => setAdjustTarget(null) },
+  const handleAdjustConfirm = (adjustment: { type: "bonus" | "advance"; amount: number; reason: string }) => {
+    // Avans = oylikdan OLDIN olinadigan pul. salary_id shart emas — oylik hisoblanmasa
+    // ham itemli yozuv yaratiladi (POST /salary-history/adjustment).
+    giveAdjustment.mutate(
+      {
+        employee_id: emp.id,
+        type: adjustment.type,
+        amount: adjustment.amount,
+        note: adjustment.reason || null,
+        year: period.year,
+        month: period.month,
+      },
+      { onSuccess: () => setAdjustOpen(false) },
     );
   };
 
@@ -150,9 +165,16 @@ export function EmployeeDetail() {
         <AttendanceCalendar period={period} onPeriodChange={setPeriod} attRows={attRows} />
         <SalaryHistoryCard
           salaryData={salaryData}
-          onAdjustBonus={(salaryId) => setAdjustTarget({ salaryId, name: fullName })}
+          onGiveAdjustment={() => setAdjustOpen(true)}
         />
       </div>
+
+      {/* Tanlangan oydagi avans/premiyalar — alohida karta */}
+      <EmployeeAdjustmentsCard
+        adjustments={periodAdjustments}
+        periodLabel={periodLabel}
+        isLoading={adjLoading}
+      />
 
       <AttendanceRecordsTable
         attRows={attRows}
@@ -182,10 +204,12 @@ export function EmployeeDetail() {
       />
 
       <SalaryAdjustmentModal
-        open={!!adjustTarget}
-        employeeName={adjustTarget?.name ?? ""}
-        defaultType="bonus"
-        onClose={() => setAdjustTarget(null)}
+        open={adjustOpen}
+        employeeName={fullName}
+        defaultType="advance"
+        adjustments={periodAdjustments ?? []}
+        busy={giveAdjustment.isPending}
+        onClose={() => setAdjustOpen(false)}
         onConfirm={handleAdjustConfirm}
       />
     </div>
