@@ -31,8 +31,16 @@ class PushSubscriptionRepository:
         )
         return list(result)
 
-    async def delete_by_endpoint(self, endpoint: str) -> None:
+    async def delete_by_endpoint(self, endpoint: str, user_id: UUID) -> None:
+        """Obunani o'chiradi — FAQAT egasi (user_id) uchun.
+
+        Ilgari user_id'siz o'chirardi: boshqa foydalanuvchining endpoint'ini bilgan
+        kishi uning push-bildirishnomalarini jimgina o'chira olardi. Endi WHERE'da
+        user_id ham bor — har kim faqat o'zining obunasini o'chiradi."""
         await self.database.execute(
-            delete(PushSubscription).where(PushSubscription.endpoint == endpoint)
+            delete(PushSubscription).where(
+                PushSubscription.endpoint == endpoint,
+                PushSubscription.user_id == user_id,
+            )
         )
         await self.database.commit()

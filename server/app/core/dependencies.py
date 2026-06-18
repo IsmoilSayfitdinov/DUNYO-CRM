@@ -1,8 +1,10 @@
+import secrets
 from uuid import UUID
 
-from fastapi import Depends, HTTPException
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi import Depends, HTTPException, status
+from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
 
+from app.core.config import setting
 from app.core.security import decode_token
 from app.core.timezone import ensure_aware, now_utc
 from app.enum.role import Role
@@ -11,6 +13,32 @@ from app.repositories.session_repository import SessionRepository
 from app.repositories.user_repository import UserRepository
 
 security = HTTPBearer()
+
+# NFC reader qurilmasi maxfiy kalitni shu header orqali yuboradi.
+# auto_error=False — kalit bo'lmasa ham FastAPI o'zi 403 bermaydi; biz aniq
+# xato xabarini o'zimiz beramiz.
+nfc_api_key_header = APIKeyHeader(name="X-NFC-Device-Key", auto_error=False)
+
+
+def verify_nfc_device(api_key: str | None = Depends(nfc_api_key_header)) -> None:
+    """NFC reader qurilmasini maxfiy kalit orqali tekshiradi.
+
+    Bu endpoint foydalanuvchi tokeni bilan emas, qurilma tomonidan chaqiriladi.
+    - Kalit serverda sozlanmagan bo'lsa (None) -> 503: endpoint o'chiq, hech kim
+      autentifikatsiyasiz davomat soxtalashtira olmaydi.
+    - Kalit noto'g'ri/yo'q bo'lsa -> 401.
+    secrets.compare_digest — constant-time solishtiruv (timing attack himoyasi)."""
+    expected = setting.NFC_DEVICE_API_KEY
+    if not expected:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="NFC xizmati sozlanmagan !",
+        )
+    if not api_key or not secrets.compare_digest(api_key, expected):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="NFC qurilma kaliti noto'g'ri !",
+        )
 
 
 def get_access_payload(
@@ -58,8 +86,10 @@ async def get_current_user(
 
 def require_role(*allowed_roles: Role):
     async def role_checker(user: User = Depends(get_current_user)) -> User:
-        if user.role == Role.leader:
-            return user
+        # DIQQAT: avval rahbarni shartsiz o'tkazib yuborardik (blanket bypass).
+        # Bu require_role(Role.employee) kabi cheklovlarni rahbar uchun ishlamay
+        # qoldirardi — kelajakda xodim-only endpoint qo'shilsa, rahbar jimgina
+        # kirib ketardi. Endi faqat ruxsat etilgan rollar tekshiriladi.
         if user.role not in allowed_roles:
             raise HTTPException(
                 403,

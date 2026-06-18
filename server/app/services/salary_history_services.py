@@ -34,6 +34,10 @@ def _money(v: Decimal) -> str:
 
 class SalaryHistoryServices:
     MAX_EXCUSED_DAYS = 2  # oyiga maks. sababli (notes bor) absent kun — to'lanadi
+    # Bitta smena uchun maksimal to'lanadigan soat. Xodim chiqishni unutsa, smena
+    # bir necha kunga "ochiq" qolib, 100+ soatga aylanishi mumkin — bu cheksiz pulga
+    # olib keladi. Shuning uchun har bir smenani shu chegaragacha qisqartiramiz (clamp).
+    MAX_SHIFT_HOURS = Decimal("16")
 
     def __init__(
         self,
@@ -63,17 +67,14 @@ class SalaryHistoryServices:
 
     async def _recompute_month(self, employee_id: UUID, month: date) -> None:
         """O'sha oyning oyligi (agar bor va to'lanmagan bo'lsa) avans/premiya
-        yig'indisiga ko'ra qayta hisoblanadi: final = base + (premiya - avans)."""
+        yig'indisiga ko'ra ATOMIK qayta hisoblanadi: final = max(0, base + (premiya - avans)).
+
+        Atomik shartli UPDATE (recompute_if_unpaid) ishlatamiz:
+        - to'langan oylik ustiga yozilmaydi (is_paid IS FALSE sharti) — lost-update poygasi yo'q;
+        - final_salary 0 dan past tushmaydi (GREATEST(0, ...)) — manfiy oylik bo'lmaydi."""
         advance, bonus = await self.adj_repo.sums_for_month(employee_id, month)
         net = bonus - advance
-        salary = await self.repo.get_by_employee_and_month(
-            employee_id=employee_id, year=month.year, month=month.month
-        )
-        if salary and not salary.is_paid:
-            salary.bonus = net
-            salary.final_salary = salary.base_salary + net
-            await self.repo.database.commit()
-            await self.repo.database.refresh(salary)
+        await self.repo.recompute_if_unpaid(employee_id=employee_id, month=month, net=net)
 
     async def give_adjustment(self, user_id: UUID, data: SalaryAdjustmentCreate) -> SalaryAdjustmentInfo:
         """Avans yoki premiya beradi — OYLIK HISOBLANMASA HAM (alohida yozuv)."""
@@ -101,8 +102,25 @@ class SalaryHistoryServices:
             given_by=user_id,
         ))
 
-        # Agar shu oy oyligi allaqachon hisoblangan (va to'lanmagan) bo'lsa — yangilaymiz
-        await self._recompute_month(employee.id, month_date)
+        # Agar shu oy oyligi allaqachon hisoblangan (va to'lanmagan) bo'lsa — yangilaymiz.
+        # recompute_if_unpaid atomik: to'langan bo'lsa 0 qaytaradi va hech narsa o'zgarmaydi.
+        advance, bonus = await self.adj_repo.sums_for_month(employee.id, month_date)
+        updated = await self.repo.recompute_if_unpaid(
+            employee_id=employee.id, month=month_date, net=bonus - advance
+        )
+        # TOCTOU himoyasi: agar oylik mavjud-u, lekin recompute 0 qaytargan bo'lsa
+        # (ya'ni oraga to'lov tushib, oylik to'langan bo'lib qolgan) — yangi avansni
+        # bekor qilamiz, aks holda u "berilgan" ko'rinadi-yu, oylikdan ushlanmaydi.
+        if updated == 0:
+            refreshed = await self.repo.get_by_employee_and_month(
+                employee_id=employee.id, year=data.year, month=data.month
+            )
+            if refreshed and refreshed.is_paid:
+                await self.adj_repo.delete(adj)
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Bu oy oyligi to'langan — avans/premiya berib bo'lmaydi !",
+                )
 
         # Xodimga bildirishnoma (xato bo'lsa amalni buzmasin)
         try:
@@ -211,6 +229,13 @@ class SalaryHistoryServices:
                 detail="To'langan oylikni o'zgartirib bo'lmaydi !"
             )
 
+        # Numeric(10,2) overflow oldini olish — summa chegaradan oshmasligi kerak.
+        if abs(bonus) > Decimal("99999999.99"):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Summa juda katta !"
+            )
+
         # Ishorali bonus -> alohida itemli yozuv (manfiy = avans, musbat = premiya)
         if bonus != 0:
             await self.adj_repo.create(SalaryAdjustment(
@@ -296,11 +321,14 @@ class SalaryHistoryServices:
 
         # Pulni Decimal'da hisoblaymiz (float yaxlitlash xatosisiz):
         # har bir yozuv soatini butun soniyalardan Decimal sifatida olamiz.
+        # HAR BIR smena MAX_SHIFT_HOURS bilan cheklanadi — chiqishni unutib, bir necha
+        # kun "ochiq" qolgan smena 100+ soatga aylanib, ortiqcha pul to'lashiga yo'l qo'ymaymiz.
         worked_hours = Decimal("0")
         for att in attendance:
             if att.check_in and att.check_out:
                 seconds = int((att.check_out - att.check_in).total_seconds())
-                worked_hours += Decimal(seconds) / Decimal(3600)
+                shift_hours = Decimal(seconds) / Decimal(3600)
+                worked_hours += min(shift_hours, self.MAX_SHIFT_HOURS)
 
         # worked_days — TAKRORLANMAS ish kunlari (bir kunda 2 marta check-in/out
         # bo'lsa ham bitta kun sifatida sanaladi).
@@ -308,7 +336,10 @@ class SalaryHistoryServices:
 
         excused = [att for att in attendance if att.status == AttendanceStatus.reason]
         excused_days = min(len(excused), self.MAX_EXCUSED_DAYS)
+        # O'rtacha kunlik soat ham MAX_SHIFT_HOURS bilan cheklanadi — bitta anomal
+        # uzun smena o'rtachani shishirib, sababli kunlar to'lovini ham oshirib yubormasin.
         avg_daily_hours = (worked_hours / worked_days) if worked_days else Decimal("0")
+        avg_daily_hours = min(avg_daily_hours, self.MAX_SHIFT_HOURS)
         excused_hours = avg_daily_hours * excused_days
 
         total_hours = (worked_hours + excused_hours).quantize(Decimal("0.01"))
@@ -316,10 +347,14 @@ class SalaryHistoryServices:
         days_worked = worked_days + excused_days
 
         # Shu oyga oldindan berilgan avans/premiyalarni qo'llaymiz:
-        # net = premiya - avans;  final = base + net  (avans oldin berilgan bo'lsa ham ayiriladi)
+        # net = premiya - avans;  final = max(0, base + net).
+        # max(0, ...) — avans bazadan oshib ketsa ham oylik manfiy bo'lmaydi (clamp).
+        # Manfiy oylik xodimga "−1 000 000 to'landi" degan bema'ni bildirishnoma yuborardi
+        # va kompaniya qarzi izsiz yo'qolardi. Ortib qolgan avans kelajakda alohida
+        # boshqariladi (hozircha 0 ga clamp qilamiz).
         advance, bonus = await self.adj_repo.sums_for_month(employee.id, date(year, month, 1))
         net = bonus - advance
-        final_salary = base_salary + net
+        final_salary = max(Decimal("0"), base_salary + net)
 
         created = SalaryHistory(
             employee_id=employee_id,

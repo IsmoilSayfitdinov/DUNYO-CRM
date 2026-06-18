@@ -23,7 +23,10 @@ interface Props {
 }
 
 const hue = (s: string) => [...s].reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
-const M = (n: number) => (n / 1_000_000).toFixed(2);
+// Pulni TO'LIQ ko'rsatamiz: oldin (n/1_000_000).toFixed(2)+'M' edi — 3 256 400 so'm
+// "3.26M" bo'lib, ~10 000 so'mlik aniqlik yo'qolardi va rahbar/xodim aniq summani
+// hech qayerda ko'ra olmasdi (oylik nizolari sababi). Endi probel bilan to'liq son.
+const fmt = (n: number) => Math.round(n).toLocaleString("uz-UZ");
 
 export function PayrollTable({ rows, isLoading, periodLabel, onAdjust, onMarkPaid, isPaying }: Props) {
   return (
@@ -58,15 +61,15 @@ export function PayrollTable({ rows, isLoading, periodLabel, onAdjust, onMarkPai
               <div className="mt-3 grid grid-cols-3 gap-2 text-center">
                 <div className="bg-slate-50 rounded-lg py-2">
                   <div className="text-[10px] text-slate-400 uppercase tracking-wide">Asosiy</div>
-                  <div className="text-sm font-medium text-slate-800 mt-0.5">{M(r.base)}M</div>
+                  <div className="text-xs font-medium text-slate-800 mt-0.5 tabular-nums">{fmt(r.base)}</div>
                 </div>
                 <div className="bg-slate-50 rounded-lg py-2">
                   <div className="text-[10px] text-slate-400 uppercase tracking-wide">Premiya</div>
-                  <div className="text-sm font-medium text-success mt-0.5">{r.bonus > 0 ? `+${M(r.bonus)}M` : "—"}</div>
+                  <div className="text-xs font-medium text-success mt-0.5 tabular-nums">{r.bonus > 0 ? `+${fmt(r.bonus)}` : "—"}</div>
                 </div>
                 <div className="bg-primary/5 rounded-lg py-2">
                   <div className="text-[10px] text-slate-400 uppercase tracking-wide">Jami</div>
-                  <div className="text-sm font-bold text-slate-900 mt-0.5">{M(r.final)}M</div>
+                  <div className="text-xs font-bold text-slate-900 mt-0.5 tabular-nums">{fmt(r.final)}</div>
                 </div>
               </div>
 
@@ -116,9 +119,9 @@ export function PayrollTable({ rows, isLoading, periodLabel, onAdjust, onMarkPai
                     </div>
                   </td>
                   <td className="px-3 sm:px-5 py-3.5 text-sm text-slate-600 whitespace-nowrap">{r.position || "—"}</td>
-                  <td className="px-3 sm:px-5 py-3.5 text-sm font-medium text-slate-800 whitespace-nowrap">{M(r.base)}M</td>
-                  <td className="px-3 sm:px-5 py-3.5 text-sm text-success font-medium whitespace-nowrap">{r.bonus > 0 ? `+${M(r.bonus)}M` : "—"}</td>
-                  <td className="px-3 sm:px-5 py-3.5 text-sm font-semibold text-slate-900 whitespace-nowrap">{M(r.final)}M <span className="text-[10px] text-slate-400">UZS</span></td>
+                  <td className="px-3 sm:px-5 py-3.5 text-sm font-medium text-slate-800 whitespace-nowrap tabular-nums">{fmt(r.base)}</td>
+                  <td className="px-3 sm:px-5 py-3.5 text-sm text-success font-medium whitespace-nowrap tabular-nums">{r.bonus > 0 ? `+${fmt(r.bonus)}` : "—"}</td>
+                  <td className="px-3 sm:px-5 py-3.5 text-sm font-semibold text-slate-900 whitespace-nowrap tabular-nums">{fmt(r.final)} <span className="text-[10px] text-slate-400">UZS</span></td>
                   <td className="px-3 sm:px-5 py-3.5"><StatusBadge status={(r.isPaid ? "Paid" : "Unpaid") as any} /></td>
                   <td className="px-3 sm:px-5 py-3.5">
                     <div className="flex items-center gap-2">

@@ -33,12 +33,14 @@ export function SalaryAdjustmentModal({ open, onClose, onConfirm, employeeName, 
     // Backend chegarasi: max_digits=10, decimal_places=2 -> <= 99 999 999.99
     if (isNaN(numAmount) || numAmount <= 0 || numAmount > 99999999.99) return;
 
+    // DIQQAT: onClose'ni shu yerda chaqirmaymiz — aks holda so'rov tugamasdan modal
+    // yopilib, tarmoq xatosida avans "berilgan"dek ko'rinardi. Chaqiruvchi mutation
+    // onSuccess'da yopadi; busy=true bo'lganda tugma bloklanadi.
     onConfirm({
       type,
       amount: numAmount,
       reason
     });
-    onClose();
   };
 
   const isBonus = type === 'bonus';

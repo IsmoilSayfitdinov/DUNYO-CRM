@@ -7,16 +7,24 @@ from app.core.config import setting
 
 # ==================== PASSWORD HASHING (Xavfsiz native bcrypt) ====================
 
+# bcrypt 72 baytdan keyingi belgilarni e'tiborga olmaydi va bcrypt>=5.x da
+# 72 baytdan uzun parol ValueError (-> 500) beradi. Shuning uchun har doim
+# 72 baytga qisqartiramiz — uzun parol login/parol-o'zgartirishni buzmaydi.
+_BCRYPT_MAX_BYTES = 72
+
+
+def _bcrypt_bytes(password: str) -> bytes:
+    return password.encode("utf-8")[:_BCRYPT_MAX_BYTES]
+
+
 def hash_password(password: str) -> str:
-    pwd_bytes = password.encode('utf-8')
     salt = bcrypt.gensalt()
-    hashed = bcrypt.hashpw(pwd_bytes, salt)
+    hashed = bcrypt.hashpw(_bcrypt_bytes(password), salt)
     return hashed.decode('utf-8')
 
 def check_password(password: str, hashed: str) -> bool:
-    pwd_bytes = password.encode('utf-8')
     hashed_bytes = hashed.encode('utf-8')
-    return bcrypt.checkpw(pwd_bytes, hashed_bytes)
+    return bcrypt.checkpw(_bcrypt_bytes(password), hashed_bytes)
 
 
 # Foydalanuvchi topilmaganda ham bir xil vaqt ketishi uchun (timing-attack /
@@ -57,9 +65,17 @@ def create_refresh_token(user_id: str, jti: str | None = None) -> str:
 def decode_token(token: str, token_type: str = "access") -> dict:
    try:
       secret = setting.JWT_ACCESS_SECRET if token_type == "access" else setting.JWT_REFRESH_SECRET
-      
-      payload = jwt.decode(token, secret, algorithms=[setting.JWT_ALGORITHM])
-      
+
+      # options.require — exp/sub/type majburan mavjud bo'lishini talab qiladi.
+      # Aks holda exp'siz yaratilgan token (kelajakdagi xato/boshqa issuer) abadiy
+      # qabul qilinardi — bekor qilib bo'lmaydigan doimiy token xavfi.
+      payload = jwt.decode(
+          token,
+          secret,
+          algorithms=[setting.JWT_ALGORITHM],
+          options={"require": ["exp", "sub", "type"]},
+      )
+
       if payload.get("type") != token_type:
           raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token turi noto'g'ri")
           

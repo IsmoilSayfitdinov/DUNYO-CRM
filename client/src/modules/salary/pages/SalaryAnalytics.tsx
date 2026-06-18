@@ -188,6 +188,7 @@ export function SalaryAnalytics() {
         title="Maoshni to'langan deb belgilash?"
         description="Ushbu amal to'lov jarayonini tasdiqlaydi. Davom etasizmi?"
         confirmLabel="Ha, to'lash"
+        busy={paySalary.isPending}
         onConfirm={handleMarkPaid}
         onClose={() => setConfirmPay(null)}
       />

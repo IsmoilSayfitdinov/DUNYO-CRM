@@ -9,7 +9,7 @@ import { ConfirmActionModal } from "@/shared/ui/ConfirmActionModal";
 
 export function Branches() {
   const { data, isLoading, isError } = useBranches();
-  const {mutate} = useDeleteBranch()
+  const {mutate, isPending: isDeleting} = useDeleteBranch()
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Branch | null>(null);
   const [qrBranch, setQrBranch] = useState<Branch | null>(null);
@@ -114,7 +114,8 @@ export function Branches() {
         description={`«${deleting?.name ?? ""}» filiali o'chiriladi. Bu filialdagi xodimlar filialdan ajratiladi (o'chmaydi) va qayta biriktirilmaguncha davomat belgilay olmaydi. Bu amalni qaytarib bo'lmaydi.`}
         confirmLabel="Ha, o'chirish"
         cancelLabel="Bekor qilish"
-        onConfirm={() => { if (deleting) mutate(deleting.id); }}
+        busy={isDeleting}
+        onConfirm={() => { if (deleting) mutate(deleting.id, { onSuccess: () => setDeleting(null) }); }}
         onClose={() => setDeleting(null)}
       />
     </div>

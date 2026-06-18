@@ -136,9 +136,10 @@ export function ManagerTasks() {
 
       <ConfirmActionModal
         open={!!deleting}
+        busy={deleteTask.isPending}
         onClose={() => setDeleting(null)}
         onConfirm={() => {
-          if (deleting) deleteTask.mutate(deleting.id);
+          if (deleting) deleteTask.mutate(deleting.id, { onSuccess: () => setDeleting(null) });
         }}
         title="Vazifani o'chirish"
         description={deleting ? `«${deleting.title}» vazifasi o'chiriladi. Bu amalni ortga qaytarib bo'lmaydi.` : ""}

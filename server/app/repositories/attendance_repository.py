@@ -34,6 +34,22 @@ class AttendanceRepository:
         )
         return await self.database.scalar(query)
 
+    async def get_last_checkout(self, employee_id: UUID) -> Attendance | None:
+        """Eng oxirgi TUGAGAN (check_out qilingan) smenani qaytaradi.
+
+        Midnight-crossing double check-in himoyasi uchun: kunlik limit work_date'ga
+        bog'liq, shuning uchun yarim tunni kesib o'tgan smena ikkinchi to'lovga yo'l
+        ochib qo'yardi. Buni oxirgi check-out vaqti orqali (kalendar kunidan mustaqil)
+        tekshiramiz."""
+        query = (
+            select(Attendance)
+            .where(Attendance.employee_id == employee_id)
+            .where(Attendance.check_out.is_not(None))
+            .order_by(Attendance.check_out.desc())
+            .limit(1)
+        )
+        return await self.database.scalar(query)
+
     async def get_today_active(self, employee_id: UUID) -> Attendance | None:
         query = (
             select(Attendance)

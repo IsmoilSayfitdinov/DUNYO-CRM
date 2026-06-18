@@ -36,7 +36,7 @@ async def unsubscribe(
     user: User = Depends(get_current_user),
     repo: PushSubscriptionRepository = Depends(),
 ):
-    await repo.delete_by_endpoint(data.endpoint)
+    await repo.delete_by_endpoint(data.endpoint, user_id=user.id)
     return {"ok": True}
 
 

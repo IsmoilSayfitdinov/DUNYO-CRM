@@ -34,6 +34,19 @@ class Setting(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+
+    # NFC reader (turniket/eshik) qurilmasi uchun maxfiy kalit. /attendance/nfc
+    # foydalanuvchi tokeni bilan emas, balki qurilma tomonidan chaqiriladi —
+    # shuning uchun u shu kalit bilan himoyalanadi. Kalit o'rnatilmasa (None),
+    # endpoint butunlay o'chiriladi (503), aks holda har kim davomatni soxtalashtirardi.
+    NFC_DEVICE_API_KEY: str | None = None
+
+    # Rate-limiter uchun: ilova oldida nechta ISHONCHLI reverse-proxy bor.
+    # 0  -> X-Forwarded-For e'tiborsiz qoldiriladi, faqat haqiqiy TCP IP ishlatiladi
+    #       (klient X-Forwarded-For'ni soxtalashtirib brute-force limitini ayllanib o'ta olmaydi).
+    # 1+ -> X-Forwarded-For zanjiridan o'ngdan shuncha-inchi IP olinadi (proxy qo'shgan,
+    #       klient nazorat qila olmaydigan qiymat). Railway/nginx odatda 1.
+    TRUSTED_PROXY_COUNT: int = 0
     
     
     SUPERUSER_USERNAME: str

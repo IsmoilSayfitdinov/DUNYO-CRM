@@ -93,9 +93,10 @@ export function LeaderReminders() {
 
       <ConfirmActionModal
         open={!!deleting}
+        busy={deleteReminder.isPending}
         onClose={() => setDeleting(null)}
         onConfirm={() => {
-          if (deleting) deleteReminder.mutate(deleting.id);
+          if (deleting) deleteReminder.mutate(deleting.id, { onSuccess: () => setDeleting(null) });
         }}
         title="Eslatmani o'chirish"
         description={deleting ? `«${deleting.title}» eslatmasi o'chiriladi.` : ""}

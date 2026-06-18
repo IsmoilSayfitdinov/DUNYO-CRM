@@ -10,6 +10,8 @@ from collections import defaultdict, deque
 
 from fastapi import HTTPException, Request, status
 
+from app.core.config import setting
+
 
 class SlidingWindowRateLimiter:
     def __init__(self, max_attempts: int, window_seconds: int):
@@ -42,8 +44,29 @@ login_rate_limiter = SlidingWindowRateLimiter(max_attempts=10, window_seconds=30
 
 
 def client_ip(request: Request) -> str:
-    # Reverse-proxy orqasida bo'lsa X-Forwarded-For ning birinchi qiymati
+    """Rate-limit uchun ishonchli klient IP.
+
+    DIQQAT: X-Forwarded-For — klient o'zi yuborishi mumkin bo'lgan header. Avval
+    uning BIRINCHI (eng chap) qiymatini olardik — bu klient to'liq nazorat qiladigan,
+    soxtalashtirsa bo'ladigan qiymat. Hujumchi har so'rovda boshqa IP yozib, brute-force
+    limitini butunlay aylanib o'tardi.
+
+    Endi TRUSTED_PROXY_COUNT ga tayanamiz:
+    - 0 -> X-Forwarded-For umuman ishlatilmaydi; faqat haqiqiy TCP IP.
+    - n -> zanjirning o'ngdan n-inchi qiymati (oxirgi ishonchli proxy qo'ygan IP).
+    """
+    real_ip = request.client.host if request.client else "unknown"
+    n = setting.TRUSTED_PROXY_COUNT
+    if n <= 0:
+        return real_ip
+
     forwarded = request.headers.get("x-forwarded-for")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-    return request.client.host if request.client else "unknown"
+    if not forwarded:
+        return real_ip
+
+    parts = [p.strip() for p in forwarded.split(",") if p.strip()]
+    if not parts:
+        return real_ip
+    # O'ngdan n-inchi qiymat: oxirgi n ta proxy ichidagi eng tashqi ishonchli IP.
+    idx = min(n, len(parts))
+    return parts[-idx]

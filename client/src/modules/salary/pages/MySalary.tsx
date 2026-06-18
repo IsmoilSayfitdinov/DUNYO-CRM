@@ -7,6 +7,9 @@ import { useMySalary } from "@/modules/salary";
 
 const num = (v: string | number) => Number(v) || 0;
 const monthLabel = (m: string) => String(m).slice(0, 7); // "2026-06"
+// Pulni TO'LIQ ko'rsatamiz (oldin .toFixed(2)+'M' edi — ~10 000 so'm aniqlik
+// yo'qolardi; xodim o'z oyligini aniq ko'ra olmasdi). Probel bilan to'liq son.
+const fmt = (n: number) => Math.round(n).toLocaleString("uz-UZ");
 
 export function MySalary() {
   const { data, isLoading, isError } = useMySalary({ limit: 24 });
@@ -41,8 +44,8 @@ export function MySalary() {
         <div className="flex items-start justify-between gap-4 mb-5">
           <div className="min-w-0">
             <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Joriy oy · {monthLabel(current.month)}</p>
-            <h2 className="text-3xl sm:text-4xl font-black mt-1.5 tracking-tight text-slate-900">
-              {(num(current.final_salary) / 1000000).toFixed(2)}M <span className="text-lg font-bold text-slate-400">UZS</span>
+            <h2 className="text-2xl sm:text-3xl font-black mt-1.5 tracking-tight text-slate-900 tabular-nums">
+              {fmt(num(current.final_salary))} <span className="text-lg font-bold text-slate-400">UZS</span>
             </h2>
           </div>
           <span className={`shrink-0 inline-flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-lg font-bold uppercase tracking-wider border ${current.is_paid ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200"}`}>
@@ -53,8 +56,8 @@ export function MySalary() {
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
-            { label: "Soatlik stavka", value: num(current.base_salary).toLocaleString() },
-            { label: "Bonus", value: num(current.bonus) > 0 ? `${(num(current.bonus) / 1000000).toFixed(2)}M` : "—" },
+            { label: "Asosiy maosh", value: fmt(num(current.base_salary)) },
+            { label: "Bonus", value: num(current.bonus) > 0 ? `+${fmt(num(current.bonus))}` : "—" },
             { label: "Ishlangan soat", value: `${current.total_hours}h` },
             { label: "Ishlangan kun", value: String(current.days_worked) },
           ].map((s) => (
@@ -116,8 +119,8 @@ export function MySalary() {
                 <tr key={s.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-3 sm:px-5 py-3.5 text-sm font-medium text-slate-800">{monthLabel(s.month)}</td>
                   <td className="px-3 sm:px-5 py-3.5 text-sm text-slate-600 hidden md:table-cell">{s.total_hours}h</td>
-                  <td className="px-3 sm:px-5 py-3.5 text-sm text-primary font-bold hidden md:table-cell">{num(s.bonus) > 0 ? `+${(num(s.bonus) / 1000000).toFixed(2)}M` : "—"}</td>
-                  <td className="px-3 sm:px-5 py-3.5 text-sm font-bold text-slate-900">{(num(s.final_salary) / 1000000).toFixed(2)}M</td>
+                  <td className="px-3 sm:px-5 py-3.5 text-sm text-primary font-bold hidden md:table-cell tabular-nums">{num(s.bonus) > 0 ? `+${fmt(num(s.bonus))}` : "—"}</td>
+                  <td className="px-3 sm:px-5 py-3.5 text-sm font-bold text-slate-900 tabular-nums">{fmt(num(s.final_salary))}</td>
                   <td className="px-3 sm:px-5 py-3.5"><StatusBadge status={(s.is_paid ? "Paid" : "Unpaid") as any} /></td>
                 </tr>
               ))}

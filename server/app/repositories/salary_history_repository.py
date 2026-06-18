@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from decimal import Decimal
 from uuid import UUID
 from sqlalchemy import extract, func, select, update
 from app.model.employee import Employee
@@ -85,17 +86,26 @@ class SalaryHistoryRepository:
         await self.database.commit()
         return result.rowcount
 
-    async def apply_bonus(self, salary_id: UUID, bonus, note: str | None = None) -> int:
-        """Bonus/avansni atomik qo'llaydi — faqat to'lanmagan oylik uchun.
+    async def recompute_if_unpaid(self, employee_id: UUID, month: date, net: Decimal) -> int:
+        """Oylik bonus/net'ini ATOMIK qayta hisoblaydi — faqat to'lanmagan oylik uchun.
 
-        bonus musbat = premiya, manfiy = avans/ushlab qolish.
-        final_salary DB ichida base_salary + bonus sifatida hisoblanadi.
-        Qaytaradi: o'zgartirilgan qatorlar soni (0 bo'lsa — to'langan/topilmadi).
+        net = premiya - avans (ishorali). final_salary = max(0, base_salary + net):
+        - WHERE is_paid IS FALSE — to'langan oylik ustiga yozilmaydi (lost-update poygasi yo'q).
+        - GREATEST(0, ...) — avans bazadan oshsa ham final_salary manfiy bo'lmaydi (clamp).
+        Bitta UPDATE = bitta atomik amal; read-modify-write poygasi yo'q.
+        Qaytaradi: o'zgartirilgan qatorlar soni (0 bo'lsa — to'langan yoki topilmadi).
         """
         result = await self.database.execute(
             update(SalaryHistory)
-            .where(SalaryHistory.id == salary_id, SalaryHistory.is_paid.is_(False))
-            .values(bonus=bonus, final_salary=SalaryHistory.base_salary + bonus, note=note)
+            .where(
+                SalaryHistory.employee_id == employee_id,
+                SalaryHistory.month == month,
+                SalaryHistory.is_paid.is_(False),
+            )
+            .values(
+                bonus=net,
+                final_salary=func.greatest(Decimal("0"), SalaryHistory.base_salary + net),
+            )
         )
         await self.database.commit()
         return result.rowcount

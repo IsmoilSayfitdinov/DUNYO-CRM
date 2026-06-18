@@ -46,11 +46,16 @@ class AttendanceBackfillService:
         already = await self.attendance_repo.employee_ids_with_record_on(work_date)
         on_leave = await self.leave_repo.employee_ids_on_approved_leave(work_date)
 
+        # In-batch dedup: bitta backfill ichida bir xodim ikki marta qo'shilmasin
+        # (active ro'yxatida takror bo'lsa ham). `already` DB'dagi mavjud yozuvni
+        # ushlaydi; `seen` shu sikl ichidagi takrorni ushlaydi.
+        seen: set = set()
         to_create: list[Attendance] = []
         absent_n = leave_n = 0
         for e in active:
-            if e.id in already:
+            if e.id in already or e.id in seen:
                 continue  # o'sha kun yozuvi bor (keldi yoki qo'lda belgilangan) — tegmaymiz
+            seen.add(e.id)
             if e.id in on_leave:
                 status = AttendanceStatus.leave
                 leave_n += 1

@@ -1,0 +1,23 @@
+# Sirlar image ichiga "pishib" qolmasligi kerak — .env DEBUG=true bilan bo'lsa,
+# compose override'siz ishga tushirilganda docs ochilib, HSTS o'chib qolardi.
+.env
+.env.*
+!.env.example
+
+# Python keshlari va virtual muhit
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+ENV/
+
+# Test/IDE artefaktlari
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.git/
+.gitignore
+*.md
+certs/

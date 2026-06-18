@@ -27,6 +27,14 @@ logger = logging.getLogger("app.attendance")
 
 class AttendanceService:
     MAX_DAILY_ATTENDANCE = 1
+    # Rahbar davomatni qo'lda tahrirlaganda bitta smena shu chegaradan oshmasligi kerak —
+    # check_in=2020, check_out=hozir kabi tahrir yuz minglab soat = cheksiz pul yaratardi.
+    MAX_SHIFT_HOURS = 16
+    # Bir smena tugagach (check_out), yangi check-in uchun minimal dam olish oynasi.
+    # Kunlik limit kalendar kuniga bog'liq edi — yarim tunni kesib o'tgan smena 00:05'da
+    # chiqib darhol qayta kirsa, yangi kun count=0 bo'lib ikkinchi to'lovga yo'l ochilardi.
+    # Bu oyna (kalendardan mustaqil) shu teshikni yopadi.
+    MIN_REST_HOURS = 6
 
     def __init__(
         self,
@@ -302,6 +310,16 @@ class AttendanceService:
             )
 
         now = now_utc()
+
+        # Yarim tunni kesib o'tuvchi smena himoyasi: oxirgi check-out'dan beri yetarli
+        # dam o'tmagan bo'lsa, yangi smenani bloklaymiz. Bu kunlik (work_date) limit
+        # chetlab o'tilganda ham ikkinchi to'lov smenasi ochilishiga yo'l qo'ymaydi.
+        last = await self.repo.get_last_checkout(employee_id=employee.id)
+        if last and last.check_out and (now - last.check_out) < timedelta(hours=self.MIN_REST_HOURS):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Yangi smena uchun oxirgi chiqishdan keyin kamida {self.MIN_REST_HOURS} soat o'tishi kerak !"
+            )
         # Kechikishni MAHALLIY vaqtda aniqlaymiz (UTC bilan solishtirish noto'g'ri edi).
         # _is_late yarim tunni kesuvchi smenani ham to'g'ri hisoblaydi.
         local_now = to_local(now)
@@ -554,6 +572,28 @@ class AttendanceService:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="check_out check_in'dan oldin bo'lishi mumkin emas !"
             )
+
+        # Vaqtlar kelajakda bo'lmasligi kerak — aks holda hali sodir bo'lmagan ish
+        # uchun pul to'lanardi. Kichik 5 daqiqalik soat farqi (clock skew) uchun bo'sh joy.
+        now = now_utc()
+        skew = timedelta(minutes=5)
+        for label, ts in (("check_in", attendance.check_in), ("check_out", attendance.check_out)):
+            if ts and ts > now + skew:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"{label} kelajakdagi vaqt bo'lishi mumkin emas !"
+                )
+
+        # Bitta smena MAX_SHIFT_HOURS dan oshmasligi kerak — uzoq oraliqdagi
+        # tahrir (masalan check_in=o'tgan yil) yuz minglab soatga aylanib, ortiqcha
+        # pul to'lashga olib kelardi.
+        if attendance.check_in and attendance.check_out:
+            duration_hours = (attendance.check_out - attendance.check_in).total_seconds() / 3600
+            if duration_hours > self.MAX_SHIFT_HOURS:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Smena davomiyligi {self.MAX_SHIFT_HOURS} soatdan oshmasligi kerak !"
+                )
 
         updated = await self.repo.update(attendance)
         return self._build_info(updated, employee)

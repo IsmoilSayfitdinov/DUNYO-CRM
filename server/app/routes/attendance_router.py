@@ -2,7 +2,7 @@ from datetime import date
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
-from app.core.dependencies import get_current_user, require_role
+from app.core.dependencies import get_current_user, require_role, verify_nfc_device
 from app.enum.role import Role
 from app.model.user import User
 from app.schemas.attendance import AttendanceListResponse, AttendanceUpdate,  AttendanceInfo, ScanRequest, AttendanceTrendItem, WeeklyAttendanceItem, AttendanceReportRow
@@ -29,11 +29,14 @@ async def scan(
 ):
     return await attendanceService.scan(user_id=user.id, data=data)
 
-@router.post("/nfc", response_model=AttendanceInfo)
+@router.post("/nfc", response_model=AttendanceInfo, dependencies=[Depends(verify_nfc_device)])
 async def nfc_scan(
     nfc_uid: str,
     attendanceService: AttendanceService = Depends(),
 ):
+    """NFC reader qurilmasi orqali check-in/out. Qurilma X-NFC-Device-Key header'ida
+    maxfiy kalit yuborishi SHART (verify_nfc_device) — aks holda har kim faqat
+    nfc_uid'ni bilib davomatni soxtalashtira olardi."""
     return await attendanceService.nfc(nfc_uid=nfc_uid)
 
 

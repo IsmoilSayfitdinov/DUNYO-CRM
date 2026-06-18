@@ -10,6 +10,8 @@ interface ConfirmActionModalProps {
   cancelLabel?: string;
   onConfirm: () => void;
   onClose: () => void;
+  /** Amal bajarilayotganda true — tugma bloklanadi (ikki marta bosishni oldini oladi). */
+  busy?: boolean;
 }
 
 export function ConfirmActionModal({
@@ -21,6 +23,7 @@ export function ConfirmActionModal({
   cancelLabel = "Bekor qilish",
   onConfirm,
   onClose,
+  busy = false,
 }: ConfirmActionModalProps) {
   if (!open) return null;
 
@@ -42,17 +45,19 @@ export function ConfirmActionModal({
             <h3 className="text-base font-semibold text-slate-900 mb-1">{title}</h3>
             <p className="text-sm text-slate-400 leading-relaxed">{description}</p>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors shrink-0">
+          <button onClick={onClose} disabled={busy} className="text-slate-400 hover:text-slate-600 transition-colors shrink-0 disabled:opacity-50">
             <X size={16} />
           </button>
         </div>
         <div className={`flex flex-col sm:flex-row items-center justify-end gap-3 px-4 sm:px-6 py-3 sm:py-4 border-t ${cfg.borderTop} bg-slate-50`}>
-          <button onClick={onClose} className="px-4 py-2 text-sm rounded-lg border border-slate-200 text-slate-700 hover:bg-white transition-all">
+          <button onClick={onClose} disabled={busy} className="px-4 py-2 text-sm rounded-lg border border-slate-200 text-slate-700 hover:bg-white transition-all disabled:opacity-50">
             {cancelLabel}
           </button>
-          <button onClick={() => { onConfirm(); onClose(); }}
-            className={`px-5 py-2 text-sm rounded-lg font-medium text-slate-900 transition-all ${cfg.btn}`}>
-            {confirmLabel}
+          {/* onClose'ni o'zimiz chaqirmaymiz — chaqiruvchi mutation muvaffaqiyatli
+              bo'lgach yopadi. Shunda amal tugamasdan modal yopilib qolmaydi. */}
+          <button onClick={onConfirm} disabled={busy}
+            className={`px-5 py-2 text-sm rounded-lg font-medium text-slate-900 transition-all ${cfg.btn} disabled:opacity-60`}>
+            {busy ? "Bajarilmoqda…" : confirmLabel}
           </button>
         </div>
       </div>

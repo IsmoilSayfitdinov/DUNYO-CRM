@@ -143,6 +143,7 @@ export function EmployeeManagement() {
         title={`${deactivateTarget?.name}ni o'chirish?`}
         description={`Bu amal ${deactivateTarget?.name}ni serverdan o'chiradi.`}
         confirmLabel="Ha, o'chirish"
+        busy={deleteEmployee.isPending}
         onConfirm={() => {
           if (!deactivateTarget) return;
           deleteEmployee.mutate(deactivateTarget.id, { onSuccess: () => setDeactivateTarget(null) });

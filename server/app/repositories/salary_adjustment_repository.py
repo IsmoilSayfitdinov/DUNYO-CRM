@@ -20,6 +20,11 @@ class SalaryAdjustmentRepository:
         await self.database.refresh(adjustment)
         return adjustment
 
+    async def delete(self, adjustment: SalaryAdjustment) -> None:
+        """Avans/premiya yozuvini o'chiradi (TOCTOU poygasida bekor qilish uchun)."""
+        await self.database.delete(adjustment)
+        await self.database.commit()
+
     async def list_by_employee_month(self, employee_id: UUID, month: date) -> list[SalaryAdjustment]:
         query = (
             select(SalaryAdjustment)
