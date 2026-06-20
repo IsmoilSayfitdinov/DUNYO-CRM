@@ -152,7 +152,7 @@ export function EmployeeTable({
               </td></tr>
             ) : (
               paginated.map((emp: any) => (
-                <tr key={emp.id} className="hover:bg-slate-50 transition-colors group">
+                <tr onClick={() => onView(emp)} key={emp.id} className="hover:bg-slate-50 transition-colors group">
                   <td className="px-3 sm:px-5 py-3">
                     <div className="flex items-center gap-2 sm:gap-3">
                       <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-white text-[10px] sm:text-xs font-semibold shrink-0"
