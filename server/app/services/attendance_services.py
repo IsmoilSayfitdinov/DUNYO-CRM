@@ -21,6 +21,7 @@ from app.repositories.user_repository import UserRepository
 from app.schemas.attendance import AttendanceInfo, AttendanceUpdate, ScanRequest, AttendanceListResponse, AttendanceTrendItem, WeeklyAttendanceItem, AttendanceReportRow
 from app.services.notification_services import NotificationService
 from app.model.employee import Employee
+from app.helper.worked_hours import worked_hours
 
 logger = logging.getLogger("app.attendance")
 
@@ -94,22 +95,14 @@ class AttendanceService:
     def _build_info(self, attendance, employee) -> AttendanceInfo:
         info = AttendanceInfo.model_validate(attendance)
 
-        if attendance.check_in and attendance.check_out:
-            duration = attendance.check_out - attendance.check_in
-            hours = duration.total_seconds() / 3600
-            info.duration_hours = round(hours, 2)
-            info.earned_amount = (
-                Decimal(str(hours)) * employee.hourly_rate
-            ).quantize(Decimal("0.01"))
+        hours = worked_hours(info)
         
-        if info.status == AttendanceStatus.absent and not attendance.check_in and not attendance.check_out:
-            duration = 0
-            hours = 0
-            info.duration_hours = round(hours, 2)
-            info.earned_amount = (
-                Decimal(str(hours)) * employee.hourly_rate
-            ).quantize(Decimal("0.00"))
-
+        info.duration_hours = round(hours, 2)
+        info.earned_amount = (
+            Decimal(str(hours)) * employee.hourly_rate
+        ).quantize(Decimal("0.01"))
+        
+     
         return info
 
     async def _build_list(self, employee, limit: int, offset: int, year: int | None, month: int | None) -> AttendanceListResponse:
@@ -250,7 +243,7 @@ class AttendanceService:
 
         records = await self.repo.get_for_month(employee_id=employee.id, year=year, month=month)
 
-        hours_by_week: dict[int, float] = {}
+        hours_by_week: dict[int, Decimal] = {}
         days_by_week: dict[int, int] = {}
 
         for record in records:
@@ -259,14 +252,14 @@ class AttendanceService:
                 week = 4                            # W5 (29-31) → W4 ga qo'shamiz
 
             if record.check_in and record.check_out:
-                hours = (record.check_out - record.check_in).total_seconds() / 3600
-                hours_by_week[week] = hours_by_week.get(week, 0.0) + hours
+                hours = worked_hours(record)
+                hours_by_week[week] = hours_by_week.get(week, Decimal("0")) + hours
                 days_by_week[week] = days_by_week.get(week, 0) + 1
 
         return [
             WeeklyAttendanceItem(
                 week=f"W{w}",
-                hours=round(hours_by_week.get(w, 0.0), 1),
+                hours=round(hours_by_week.get(w, Decimal("0")), 1),
                 days=days_by_week.get(w, 0),
             )
             for w in range(1, 5)
@@ -555,14 +548,12 @@ class AttendanceService:
         # DIQQAT: bu yerda `status`ni tekshiramiz (avval xato bilan `check_out`
         # (datetime) enum bilan solishtirilardi — har doim True bo'lib, qonuniy
         # tahrirlarni ham rad etardi).
-        if attendance.check_out is None and attendance.status not in (
-            AttendanceStatus.came,
-            AttendanceStatus.late,
+        if attendance.status in (AttendanceStatus.absent, AttendanceStatus.leave) and (
+            attendance.check_in or attendance.check_out
         ):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Kelmagan yoki ta'tildagi kunni ochiq (chiqishsiz) qilib bo'lmaydi. "
-                       "Avval holatni 'keldi' qiling yoki chiqish vaqtini kiriting !",
+                detail="Kelmagan yoki ta'tildagi kunga kirish/chiqish vaqtini qo'shib bo'lmaydi !",
             )
 
         # Yakuniy holatda check_out check_in'dan oldin bo'lib qolmasligini tekshiramiz

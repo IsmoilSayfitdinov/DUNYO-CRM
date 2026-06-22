@@ -2,6 +2,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from uuid import UUID
 
+from app.core.timezone import to_utc_from_local
 from app.enum.attendance_status import AttendanceStatus
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -33,6 +34,13 @@ class AttendanceUpdate(BaseModel):
 
     @model_validator(mode="after")
     def _check_times(self):
+        # Rahbar formasidan kelgan vaqtlar naive (timezone'siz) bo'lishi mumkin —
+        # ularni darrov UTC'ga normallashtiramiz (5 soat siljish + 500 xatosi oldini olish).
+        if self.check_in:
+            self.check_in = to_utc_from_local(self.check_in)
+        if self.check_out:
+            self.check_out = to_utc_from_local(self.check_out)
+
         # check_out check_in'dan oldin bo'lmasligi kerak (manfiy soat/pulning oldini olish)
         if self.check_in and self.check_out and self.check_out < self.check_in:
             raise ValueError("check_out check_in'dan oldin bo'lishi mumkin emas !")

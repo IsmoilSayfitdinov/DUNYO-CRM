@@ -23,6 +23,7 @@ from app.schemas.salary_adjustment import SalaryAdjustmentCreate, SalaryAdjustme
 from app.schemas.salary_history import SalaryHistoryInfo, SalarySummary, SalaryTrendItem, SalaryWithEmployeeInfo
 from app.services.attendance_backfill_services import AttendanceBackfillService
 from app.services.notification_services import NotificationService
+from app.helper.worked_hours import worked_hours
 
 logger = logging.getLogger("app.salary")
 
@@ -323,12 +324,9 @@ class SalaryHistoryServices:
         # har bir yozuv soatini butun soniyalardan Decimal sifatida olamiz.
         # HAR BIR smena MAX_SHIFT_HOURS bilan cheklanadi — chiqishni unutib, bir necha
         # kun "ochiq" qolgan smena 100+ soatga aylanib, ortiqcha pul to'lashiga yo'l qo'ymaymiz.
-        worked_hours = Decimal("0")
+        total_hours = Decimal("0")
         for att in attendance:
-            if att.check_in and att.check_out:
-                seconds = int((att.check_out - att.check_in).total_seconds())
-                shift_hours = Decimal(seconds) / Decimal(3600)
-                worked_hours += min(shift_hours, self.MAX_SHIFT_HOURS)
+                total_hours += worked_hours(att)
 
         # worked_days — TAKRORLANMAS ish kunlari (bir kunda 2 marta check-in/out
         # bo'lsa ham bitta kun sifatida sanaladi).
@@ -338,11 +336,11 @@ class SalaryHistoryServices:
         excused_days = min(len(excused), self.MAX_EXCUSED_DAYS)
         # O'rtacha kunlik soat ham MAX_SHIFT_HOURS bilan cheklanadi — bitta anomal
         # uzun smena o'rtachani shishirib, sababli kunlar to'lovini ham oshirib yubormasin.
-        avg_daily_hours = (worked_hours / worked_days) if worked_days else Decimal("0")
+        avg_daily_hours = (total_hours / worked_days) if worked_days else Decimal("0")
         avg_daily_hours = min(avg_daily_hours, self.MAX_SHIFT_HOURS)
         excused_hours = avg_daily_hours * excused_days
 
-        total_hours = (worked_hours + excused_hours).quantize(Decimal("0.01"))
+        total_hours = (total_hours + excused_hours).quantize(Decimal("0.01"))
         base_salary = (total_hours * employee.hourly_rate).quantize(Decimal("0.01"))
         days_worked = worked_days + excused_days
 

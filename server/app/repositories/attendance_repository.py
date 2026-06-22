@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from uuid import UUID
 
 from sqlalchemy import extract, func, select
@@ -29,6 +29,7 @@ class AttendanceRepository:
             .where(Attendance.employee_id == employee_id)
             .where(Attendance.check_out.is_(None))
             .where(Attendance.status.in_([AttendanceStatus.came, AttendanceStatus.late]))
+            .where(Attendance.work_date >= today_local() - timedelta(days=1))
             .order_by(Attendance.check_in.desc())
             .limit(1)
         )
