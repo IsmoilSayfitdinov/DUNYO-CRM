@@ -42,7 +42,9 @@ export function GeoPermissionSheet({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-w-md mx-auto">
+      {/* z-[71]: Scanner full-screen overlay (z-[60]) ustida ko'rinishi shart —
+          aks holda GPS ruxsat paneli qora kamera fonida ko'rinmay qoladi. */}
+      <DrawerContent className="max-w-md mx-auto z-[71]" overlayClassName="z-[70]">
         {/* Yopish tugmasi */}
         <button
           onClick={() => onOpenChange(false)}
