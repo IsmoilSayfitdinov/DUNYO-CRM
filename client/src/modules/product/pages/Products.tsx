@@ -1,15 +1,17 @@
 import { useState, useEffect, useRef } from "react";
-import { ScanBarcode } from "lucide-react";
-import { Html5QrcodeScanner, Html5QrcodeSupportedFormats } from "html5-qrcode";
+import { ScanBarcode, X, RotateCcw } from "lucide-react";
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from "html5-qrcode";
 import { useProductByBarcode } from "@/modules/product";
 import { ProductSearch, BarcodeScanner, ScannerTips } from "../components/products";
+
+const READER_ID = "barcode-reader-region";
 
 export function Products() {
   // mode: kameraning holati; code: serverda qidirilayotgan barcode
   const [mode, setMode] = useState<"idle" | "scanning">("idle");
   const [code, setCode] = useState<string>("");
   const [manualQuery, setManualQuery] = useState("");
-  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+  const qrRef = useRef<Html5Qrcode | null>(null);
 
   // Barcode bo'yicha real qidiruv (YesPOS backend proxy orqali)
   const { data: foundProduct, isFetching, isError } = useProductByBarcode(code);
@@ -22,47 +24,65 @@ export function Products() {
     : code && isError ? "notfound"
     : "idle";
 
+  // Kamerani xavfsiz to'xtatish (state'lar orasida ko'p marta chaqirilishi mumkin).
+  const stopCamera = async () => {
+    const inst = qrRef.current;
+    qrRef.current = null;
+    if (!inst) return;
+    try {
+      if (inst.isScanning) await inst.stop();
+      inst.clear();
+    } catch {
+      /* allaqachon to'xtagan bo'lishi mumkin — e'tiborsiz */
+    }
+  };
+
   useEffect(() => {
-    if (mode === "scanning") {
-      const config = {
-        fps: 10,
-        qrbox: { width: 280, height: 140 },
-        aspectRatio: 1.5,
-        rememberLastUsedCamera: false,
-        // ORQA (back) kamerani tanlaydi
-        videoConstraints: { facingMode: { ideal: "environment" } },
-        formatsToSupport: [
-          Html5QrcodeSupportedFormats.EAN_13,
-          Html5QrcodeSupportedFormats.EAN_8,
-          Html5QrcodeSupportedFormats.UPC_A,
-          Html5QrcodeSupportedFormats.UPC_E,
-          Html5QrcodeSupportedFormats.CODE_128,
-          Html5QrcodeSupportedFormats.CODE_39,
-          Html5QrcodeSupportedFormats.QR_CODE,
-        ],
-      };
+    if (mode !== "scanning") return;
 
-      const scanner = new Html5QrcodeScanner("barcode-reader", config, false);
-      scannerRef.current = scanner;
+    let cancelled = false;
+    const config = {
+      fps: 10,
+      // qrbox bermaymiz — kutubxona oq ramka chizmaydi; o'z neon ramkamiz ustida turadi.
+      formatsToSupport: [
+        Html5QrcodeSupportedFormats.EAN_13,
+        Html5QrcodeSupportedFormats.EAN_8,
+        Html5QrcodeSupportedFormats.UPC_A,
+        Html5QrcodeSupportedFormats.UPC_E,
+        Html5QrcodeSupportedFormats.CODE_128,
+        Html5QrcodeSupportedFormats.CODE_39,
+        Html5QrcodeSupportedFormats.QR_CODE,
+      ],
+    };
 
-      scanner.render(
-        (decodedText) => {
-          // barcode aniqlandi — qidiruvni ishga tushiramiz (setCode -> query)
+    const html5Qr = new Html5Qrcode(READER_ID, /* verbose= */ false);
+    qrRef.current = html5Qr;
+
+    html5Qr
+      .start(
+        // html5-qrcode faqat string yoki { exact } qabul qiladi (ideal EMAS).
+        { facingMode: "environment" },
+        config,
+        async (decodedText) => {
+          if (cancelled) return;
+          // barcode aniqlandi — kamerani to'xtatib, qidiruvni ishga tushiramiz.
+          await stopCamera();
           setMode("idle");
           setCode(decodedText.trim());
-          if (scannerRef.current) {
-            scannerRef.current.clear().catch(() => {});
-          }
         },
-        () => {}
-      );
+        () => {
+          // har kadrdagi "topilmadi" xatolarini e'tiborsiz qoldiramiz
+        },
+      )
+      .catch(() => {
+        // kamera ochilmadi — idle holatga qaytamiz
+        if (!cancelled) setMode("idle");
+      });
 
-      return () => {
-        if (scannerRef.current) {
-          scannerRef.current.clear().catch(() => {});
-        }
-      };
-    }
+    return () => {
+      cancelled = true;
+      stopCamera();
+    };
   }, [mode]);
 
   const startScanning = () => {
@@ -103,7 +123,7 @@ export function Products() {
         />
       )}
 
-      {/* Scanner card */}
+      {/* Scanner card (scanning'dan boshqa barcha holatlar — oq karta) */}
       <BarcodeScanner
         scanState={scanState}
         foundProduct={foundProduct ?? null}
@@ -115,26 +135,78 @@ export function Products() {
       {/* Tips */}
       {scanState === "idle" && <ScannerTips />}
 
+      {/* ===== FULL-SCREEN KAMERA OVERLAY (faqat skanerlash paytida) ===== */}
+      {mode === "scanning" && (
+        <div className="fixed inset-0 z-[60] bg-slate-950 flex flex-col">
+          {/* Kamera video shu yerga chiziladi */}
+          <div id={READER_ID} className="absolute inset-0 w-full h-full" />
+
+          {/* Yuqori panel */}
+          <div className="relative z-20 flex items-center justify-between px-5"
+            style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 1.25rem)" }}>
+            <div className="flex items-center gap-2 text-white/90 font-semibold text-sm bg-white/10 backdrop-blur-md px-3.5 py-2 rounded-full ring-1 ring-white/15">
+              <ScanBarcode size={15} /> Barkod skaneri
+            </div>
+            <button onClick={reset}
+              className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md ring-1 ring-white/15 flex items-center justify-center text-white hover:bg-white/20 transition active:scale-95">
+              <X size={20} />
+            </button>
+          </div>
+
+          {/* Markaz: keng (barcode) neon ramka */}
+          <div className="relative z-10 flex-1 flex flex-col items-center justify-center">
+            <div className="relative w-72 h-40 max-w-[82%]">
+              {[
+                "top-0 left-0 border-t-4 border-l-4 rounded-tl-xl",
+                "top-0 right-0 border-t-4 border-r-4 rounded-tr-xl",
+                "bottom-0 left-0 border-b-4 border-l-4 rounded-bl-xl",
+                "bottom-0 right-0 border-b-4 border-r-4 rounded-br-xl",
+              ].map((c) => (
+                <div key={c} className={`absolute w-9 h-9 border-primary ${c}`} style={{ filter: "drop-shadow(0 0 6px var(--primary))" }} />
+              ))}
+              <div className="absolute left-2 right-2 h-0.5 rounded-full bg-gradient-to-r from-transparent via-primary to-transparent shadow-[0_0_16px_2px_var(--primary)] animate-[scanline_2.4s_ease-in-out_infinite]" />
+            </div>
+            <p className="mt-8 text-white/80 text-sm font-medium px-8 text-center">
+              Shtrix-kodni ramka ichiga joylashtiring
+            </p>
+          </div>
+
+          {/* Pastki tugma */}
+          <div className="relative z-20 px-5"
+            style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1.25rem)" }}>
+            <button onClick={reset}
+              className="w-full py-3.5 bg-white/10 backdrop-blur-md ring-1 ring-white/15 text-white font-semibold rounded-2xl hover:bg-white/20 transition active:scale-[0.98] flex items-center justify-center gap-2">
+              <X size={16} /> Bekor qilish
+            </button>
+          </div>
+        </div>
+      )}
+
       <style>{`
         @keyframes scanline {
           0% { top: 4%; opacity: 0.2; }
           50% { top: 92%; opacity: 1; }
           100% { top: 4%; opacity: 0.2; }
         }
-        #barcode-reader { border: none !important; min-height: 300px; background: #020617 !important; }
-        #barcode-reader video { border-radius: 0 !important; object-fit: cover !important; }
-        #barcode-reader img { display: none !important; }
-        #barcode-reader__dashboard { padding: 8px !important; }
-        #barcode-reader__dashboard_section_csr button {
-          background: linear-gradient(to right, var(--primary), #b91c1c) !important;
-          color: #fff !important; border: none !important; border-radius: 0.75rem !important;
-          padding: 0.5rem 1rem !important; font-weight: 700 !important; cursor: pointer !important; margin: 0.35rem !important;
+        /* === html5-qrcode'ni TO'LIQ EKRANGA majburlash === */
+        #${READER_ID} img, #${READER_ID} button, #${READER_ID} select, #${READER_ID} a { display: none !important; }
+        #${READER_ID} {
+          position: absolute !important;
+          inset: 0 !important;
+          width: 100% !important;
+          height: 100% !important;
+          border: none !important;
+          padding: 0 !important;
         }
-        #barcode-reader__camera_selection {
-          padding: 0.45rem 0.6rem !important; border-radius: 0.6rem !important;
-          border: 1px solid rgba(255,255,255,0.15) !important; background: rgba(255,255,255,0.08) !important; color: #fff !important;
+        #${READER_ID} #qr-shaded-region { display: none !important; }
+        #${READER_ID} video {
+          border-radius: 0 !important;
+          width: 100% !important;
+          height: 100% !important;
+          object-fit: cover !important;
+          position: absolute !important;
+          inset: 0 !important;
         }
-        #barcode-reader a { color: var(--primary) !important; }
       `}</style>
     </div>
   );

@@ -81,11 +81,18 @@ export function BarcodeScanner({ scanState, foundProduct, scannedCode, onStart, 
           </>
         )}
 
+        {/* scanning holati endi full-screen overlay'da (Products.tsx) — bu yerda
+            faqat "kamera ochilmoqda" ko'rinishi qoladi (overlay ko'tarilгунча qisqa lahza) */}
         {scanState === "scanning" && (
-          <div className="relative w-full">
-            <div id="barcode-reader" className="w-full overflow-hidden"></div>
-            <div className="pointer-events-none absolute inset-0"><WideFrame /></div>
-          </div>
+          <>
+            <WideFrame />
+            <div className="relative z-10 text-center px-6">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center text-white/80 ring-1 ring-white/15">
+                <Loader2 size={30} className="animate-spin" />
+              </div>
+              <p className="text-white font-semibold">Kamera ochilmoqda…</p>
+            </div>
+          </>
         )}
 
         {scanState === "searching" && (
