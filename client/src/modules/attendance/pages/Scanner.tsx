@@ -92,15 +92,23 @@ export function Scanner() {
     let cancelled = false;
     // qrbox bermaymiz — kutubxona o'zining oq ramkasini chizmaydi, butun kadr skanerlanadi.
     // O'z neon ramkamiz (ScanFrame) faqat vizual yo'riqnoma sifatida ustида turadi.
-    const config = { fps: 10 };
+    //
+    // MUHIM (iPhone bug fix): facingMode'ni videoConstraints ICHIDA { ideal } bilan beramiz.
+    // Bare "environment" iOS Safari'da QATTIQ talab sifatida tushuniladi va orqa kamerani
+    // darrov aniqlay olmasa (ruxsat yangi so'ralganda) getUserMedia rad etadi → iPhone ishlamaydi.
+    // { ideal } esa YUMSHOQ — orqa kamera bo'lmasa istalganini oladi, hech qachon rad etmaydi.
+    const config = {
+      fps: 10,
+      videoConstraints: { facingMode: { ideal: "environment" } },
+    };
 
     const html5Qr = new Html5Qrcode(READER_ID, /* verbose= */ false);
     qrRef.current = html5Qr;
 
     html5Qr
       .start(
-        // html5-qrcode faqat string yoki { exact } qabul qiladi (ideal EMAS).
-        // "environment" = orqa kamera; topilmasa kutubxona mavjudini oladi.
+        // 1-argument majburiy (kutubxona bo'sh bo'lsa xato beradi), lekin config'dagi
+        // videoConstraints ustun keladi — shuning uchun bu faqat formal qiymat.
         { facingMode: "environment" },
         config,
         async (decodedText) => {

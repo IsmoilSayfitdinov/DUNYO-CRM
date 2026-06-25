@@ -44,6 +44,9 @@ export function Products() {
     const config = {
       fps: 10,
       // qrbox bermaymiz — kutubxona oq ramka chizmaydi; o'z neon ramkamiz ustida turadi.
+      // iPhone bug fix: facingMode'ni videoConstraints ichida { ideal } bilan beramiz.
+      // Bare "environment" iOS Safari'da qattiq talab bo'lib, getUserMedia'ni rad ettiradi.
+      videoConstraints: { facingMode: { ideal: "environment" } },
       formatsToSupport: [
         Html5QrcodeSupportedFormats.EAN_13,
         Html5QrcodeSupportedFormats.EAN_8,
@@ -60,7 +63,7 @@ export function Products() {
 
     html5Qr
       .start(
-        // html5-qrcode faqat string yoki { exact } qabul qiladi (ideal EMAS).
+        // 1-argument majburiy, lekin config'dagi videoConstraints ustun keladi.
         { facingMode: "environment" },
         config,
         async (decodedText) => {
