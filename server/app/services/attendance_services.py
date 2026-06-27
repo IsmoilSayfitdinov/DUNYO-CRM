@@ -130,10 +130,12 @@ class AttendanceService:
 
         return leader
 
-    async def _get_active_attendance(self, employee_id: UUID, method: str = "check-in") -> Attendance:
+    async def _get_active_attendance(self, employee_id: UUID, method: str = "check-in", *, for_update: bool = False) -> Attendance:
         # Ochiq yozuvni KUNGA bog'lamay topamiz (yarim tunni kesgan smena ham
         # check-out qilinsin, va ochiq yozuv borligida qayta check-in bo'lmasin).
-        attendance_active = await self.repo.get_open(employee_id=employee_id)
+        # for_update=True (check-out yo'lida): qatorni qulflab o'qiymiz, shunda
+        # ikki bir vaqtdagi check-out so'rovidan faqat bittasi yopadi (3.2 race fix).
+        attendance_active = await self.repo.get_open(employee_id=employee_id, for_update=for_update)
 
         if method == "check-in":
             if attendance_active:
@@ -321,7 +323,10 @@ class AttendanceService:
 
         # Avto-job bugun absent/leave yozib qo'ygan bo'lsa — YANGI yozuv yaratish
         # o'rniga shu placeholder'ni qayta ishlatamiz (bir kunda ikki yozuv qolmasin).
-        placeholder = await self.repo.get_today_placeholder(employee_id=employee.id)
+        # for_update=True: placeholder qatorini QULFLAB o'qiymiz, shunda ikki bir
+        # vaqtdagi check-in undagi check_in'ni birin-ketin emas, navbat bilan yozadi
+        # -> birinchisining vaqti/notes jimgina yo'qolmaydi (3.1 race fix).
+        placeholder = await self.repo.get_today_placeholder(employee_id=employee.id, for_update=True)
 
         try:
             if placeholder is not None:
@@ -384,7 +389,11 @@ class AttendanceService:
         employee = await get_current_employee(self.employee_repo, user_id)
 
         await self._verify_location(employee, data)
-        attendance_active = await self._get_active_attendance(employee_id=employee.id, method="check-out")
+        # for_update=True: ochiq smenani QULFLAB o'qiymiz. Ikki bir vaqtdagi check-out
+        # kelganda ikkinchisi birinchisi commit qilguncha kutadi, so'ng get_open None
+        # qaytaradi (check_out endi to'ldirilgan) -> 400 "Avval check-in qiling" oladi,
+        # ya'ni ikki marta yopilmaydi va ikkita notif chiqmaydi (3.2 race fix).
+        attendance_active = await self._get_active_attendance(employee_id=employee.id, method="check-out", for_update=True)
 
         attendance_active.check_out = now_utc()
         attendance_active.status = AttendanceStatus.left
@@ -410,6 +419,8 @@ class AttendanceService:
 
     async def scan(self, user_id: UUID, data: ScanRequest) -> AttendanceInfo:
         employee = await get_current_employee(self.employee_repo, user_id)
+        # Bu yerda lock SHART EMAS — get_open faqat YO'NALTIRISH uchun (check-in
+        # yoki check-out?). Haqiqiy qulflash check_in()/check_out() ichida bo'ladi.
         active = await self.repo.get_open(employee_id=employee.id)
 
         if active is not None:
@@ -434,7 +445,9 @@ class AttendanceService:
         now = now_utc()
         local_now = to_local(now)
 
-        active = await self.repo.get_open(employee_id=employee.id)
+        # for_update=True: ochiq smenani qulflab o'qiymiz — ikki bir vaqtdagi NFC tap
+        # check-out poygasidan faqat bittasi yopadi (3.2 race fix, scan bilan bir xil).
+        active = await self.repo.get_open(employee_id=employee.id, for_update=True)
         if active is not None:
             active.check_out = now
             active.status = AttendanceStatus.left
@@ -460,7 +473,8 @@ class AttendanceService:
         is_late = self._is_late(employee.shift_start, employee.shift_end, local_now)
         attendance_status = AttendanceStatus.late if is_late else AttendanceStatus.came
 
-        placeholder = await self.repo.get_today_placeholder(employee_id=employee.id)
+        # for_update=True: placeholder'ni qulflab o'qiymiz (3.1 race fix, scan bilan bir xil).
+        placeholder = await self.repo.get_today_placeholder(employee_id=employee.id, for_update=True)
         try:
             if placeholder is not None:
                 placeholder.check_in = now

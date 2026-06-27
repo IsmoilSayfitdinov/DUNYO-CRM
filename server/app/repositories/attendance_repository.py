@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date
 from uuid import UUID
 
 from sqlalchemy import extract, func, select
@@ -23,16 +23,30 @@ class AttendanceRepository:
         query = select(Attendance).where(Attendance.id == id)
         return await self.database.scalar(query)
 
-    async def get_open(self, employee_id: UUID) -> Attendance | None:
+    async def get_open(self, employee_id: UUID, *, for_update: bool = False) -> Attendance | None:
+        # DIQQAT: sana filtri (work_date >= today-1) ATAYIN OLIB TASHLANDI.
+        # Sabab — partial unique index'da sana cheklovi yo'q:
+        #   WHERE check_out IS NULL AND status IN ('came','late')
+        # Eski filtr "bugun + kecha"ni ko'rardi, index esa har qanday sanani.
+        # Agar smena 2 kundan ortiq ochiq qolsa: get_open uni topolmas (eski),
+        # lekin index uni "band slot" deb bilardi -> xodim check-in (409) ham,
+        # check-out (400) ham qila olmay QULFLANARDI (lockout).
+        # Endi get_open index BILAN BIR XIL qatorni ko'radi -> lockout imkonsiz.
+        # (Index bittadan ortiq ochiq smenaga yo'l qo'ymaydi, shuning uchun limit(1) yetarli.)
         query = (
             select(Attendance)
             .where(Attendance.employee_id == employee_id)
             .where(Attendance.check_out.is_(None))
             .where(Attendance.status.in_([AttendanceStatus.came, AttendanceStatus.late]))
-            .where(Attendance.work_date >= today_local() - timedelta(days=1))
             .order_by(Attendance.check_in.desc())
             .limit(1)
         )
+        # for_update=True: qatorni qulflab o'qiymiz (SELECT ... FOR UPDATE).
+        # Ikki bir vaqtdagi check-out so'rovi kelganda, ikkinchisi birinchisi
+        # commit qilguncha KUTADI, so'ng yangilangan (check_out to'ldirilgan)
+        # holatni ko'radi -> ikki marta yopilmaydi (3.2 race fix).
+        if for_update:
+            query = query.with_for_update()
         return await self.database.scalar(query)
 
     async def get_last_checkout(self, employee_id: UUID) -> Attendance | None:
@@ -60,7 +74,7 @@ class AttendanceRepository:
         )
         return await self.database.scalar(query)
 
-    async def get_today_placeholder(self, employee_id: UUID) -> Attendance | None:
+    async def get_today_placeholder(self, employee_id: UUID, *, for_update: bool = False) -> Attendance | None:
         """Bugungi absent/leave/reason "placeholder" yozuvi (agar bo'lsa).
 
         Avto-job bugun kelmagan deb absent (yoki ta'tilda leave) yozib qo'ygan
@@ -81,6 +95,14 @@ class AttendanceRepository:
             .order_by(Attendance.id.desc())
             .limit(1)
         )
+        # for_update=True: placeholder qatorini qulflab o'qiymiz. Ikki bir vaqtdagi
+        # check-in so'rovi kelganda, ikkinchisi birinchisi commit qilguncha KUTADI.
+        # So'ng u qator endi check_in IS NOT NULL bo'lgani uchun (placeholder shartiga
+        # tushmaydi) None qaytaradi -> ikkinchi so'rov INSERT yo'liga o'tadi -> partial
+        # unique index uni ushlaydi -> toza 409. Shu bilan "ikkala so'rov ham came
+        # qiladi, birinchisining vaqti jimgina yo'qoladi" muammosi yopiladi (3.1 fix).
+        if for_update:
+            query = query.with_for_update()
         return await self.database.scalar(query)
 
     async def get_today_count(self, employee_id: UUID) -> int:
