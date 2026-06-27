@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.responses import JSONResponse
 
-from app.core.attendance_scheduler import attendance_daily_loop
+from app.core.attendance_scheduler import attendance_daily_loop, attendance_shift_end_loop
 from app.core.config import setting
 from app.routes.auth_router import router as auth_router
 from app.routes.employee_router import router as employee_router
@@ -28,16 +28,24 @@ logger = logging.getLogger("app")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Davomat avto-to'ldirish fon-vazifasi (har yarim tunda kechagi kunni absent/leave qiladi)
-    task = asyncio.create_task(attendance_daily_loop())
+    # Fon-vazifalar:
+    #  1) attendance_daily_loop  — har yarim tunda (00:10) KECHAGI kunni absent/leave qiladi
+    #  2) attendance_shift_end_loop — kun davomida (har 30 daq) smenasi TUGAGAN
+    #     ammo kelmagan xodimlarni absent/leave qiladi (shift_end vaqtiga qarab)
+    tasks = [
+        asyncio.create_task(attendance_daily_loop()),
+        asyncio.create_task(attendance_shift_end_loop()),
+    ]
     try:
         yield
     finally:
-        task.cancel()
-        try:
-            await task
-        except asyncio.CancelledError:
-            pass
+        for task in tasks:
+            task.cancel()
+        for task in tasks:
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
 
 
 app = FastAPI(

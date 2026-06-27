@@ -3,7 +3,7 @@ from datetime import date, timedelta
 
 from fastapi import Depends
 
-from app.core.timezone import today_local
+from app.core.timezone import now_local, today_local
 from app.enum.attendance_status import AttendanceStatus
 from app.model.attendance import Attendance
 from app.repositories.attendance_repository import AttendanceRepository
@@ -78,6 +78,63 @@ class AttendanceBackfillService:
     async def backfill_yesterday(self) -> dict:
         """Kunlik job: kechagi kunni to'ldiradi (kun to'liq tugagandan keyin)."""
         return await self.backfill_day(today_local() - timedelta(days=1))
+
+    async def backfill_finished_shifts_today(self) -> dict:
+        """Smena tugashига qarab BUGUNGI kelmaganlarni to'ldiradi.
+
+        Kun oxirini (00:10) kutmasdan, har bir xodimning shift_end vaqti o'tishi
+        bilan (fon-job har ~30 daqiqada chaqiradi) tekshiriladi:
+          - shift_end YO'Q xodim          -> TEGILMAYDI (eski 00:10 backfill ishlaydi)
+          - shift_end hali o'tmagan        -> TEGILMAYDI (smena davom etyapti)
+          - shift_end o'tgan + yozuvi yo'q -> ta'tilda bo'lsa leave, aks holda absent
+
+        Yozuvi BOR xodim (keldi/kech/qo'lda belgilangan) tegilmaydi. Bir marta absent
+        qo'yilgach, keyingi yugurishda `already`'da bo'lib qayta yozilmaydi.
+        """
+        now = now_local()
+        today = today_local()
+
+        employees = await self.employee_repo.get_all(limit=10_000, offset=0)
+        # Faqat: faol + smena tugash vaqti bor + o'sha vaqt allaqachon o'tgan xodimlar
+        due = [
+            e
+            for e in employees
+            if e.is_active and e.shift_end is not None and e.shift_end <= now.time()
+        ]
+        if not due:
+            return {"absent": 0, "leave": 0, "date": today.isoformat()}
+
+        already = await self.attendance_repo.employee_ids_with_record_on(today)
+        on_leave = await self.leave_repo.employee_ids_on_approved_leave(today)
+
+        seen: set = set()
+        to_create: list[Attendance] = []
+        absent_n = leave_n = 0
+        for e in due:
+            if e.id in already or e.id in seen:
+                continue  # bugun yozuvi bor (keldi yoki qo'lda) — tegmaymiz
+            seen.add(e.id)
+            if e.id in on_leave:
+                status = AttendanceStatus.leave
+                leave_n += 1
+            else:
+                status = AttendanceStatus.absent
+                absent_n += 1
+            to_create.append(Attendance(
+                employee_id=e.id,
+                work_date=today,
+                check_in=None,
+                check_out=None,
+                status=status,
+                is_late=False,
+            ))
+
+        await self.attendance_repo.bulk_create(to_create)
+        logger.info(
+            "Smena-tugashi backfill %s: %d absent, %d leave (%d xodim smenasi tugagan)",
+            today, absent_n, leave_n, len(due),
+        )
+        return {"absent": absent_n, "leave": leave_n, "date": today.isoformat()}
 
     async def backfill_range(self, start: date, end: date) -> list[dict]:
         """Oraliqdagi har bir kunni to'ldiradi (o'tgan kunlarni bir martalik to'ldirish uchun)."""
