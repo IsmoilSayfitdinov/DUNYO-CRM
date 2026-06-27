@@ -24,10 +24,15 @@
       "Bash(pdftoppm -png -r 90 -f 1 -l 1 /tmp/QR-Yashnabod.pdf /tmp/final-check)",
       "Bash(docker --version)",
       "Bash(docker compose *)",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173)",
+      "Bash(exit 1)",
+      "Bash(./node_modules/.bin/tsc --noEmit)",
+      "Bash(echo \"TSC_EXIT=$?\")"
     ],
     "additionalDirectories": [
-      "/home/ismoil/Downloads"
+      "/home/ismoil/Downloads",
+      "/home/ismoil/Desktop/dunyo-auth-express",
+      "/home/ismoil/Desktop/dunyo-auth-nest/src"
     ]
   }
 }
