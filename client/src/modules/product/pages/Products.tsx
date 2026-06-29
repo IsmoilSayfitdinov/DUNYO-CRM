@@ -41,12 +41,28 @@ export function Products() {
     if (mode !== "scanning") return;
 
     let cancelled = false;
+    // iPhone bug fix: facingMode'ni videoConstraints ichida { ideal } bilan beramiz.
+    // Bare "environment" iOS Safari'da qattiq talab bo'lib, getUserMedia'ni rad ettiradi.
+    //
+    // iPhone DEKOD bug fix (Scanner.tsx bilan bir xil sabab): qrbox berilmasa,
+    // html5-qrcode skan hududini full-screen cho'zilgan video o'lchamidan hisoblaydi
+    // → iOS Safari'da kadr noto'g'ri olinadi → hech narsa o'qilmaydi (xato yo'q).
+    // FARQ: bu BARCODE (EAN/UPC) skaneri — barcode KENG va past, kvadrat emas.
+    // Shuning uchun qrbox'ni KENG to'rtburchak qilamiz (kenglik > balandlik) va
+    // aspectRatio BERMAYMIZ (kvadrat majburlasak barcode sig'may qolardi).
+    const computeQrbox = (vw: number, vh: number) => {
+      const w = Math.floor(Math.min(vw, vh) * 0.8); // keng — barcode uzunligini qamraydi
+      const h = Math.floor(w * 0.5);                 // past — barcode balandligi kichik
+      return { width: w, height: h };
+    };
     const config = {
       fps: 10,
-      // qrbox bermaymiz — kutubxona oq ramka chizmaydi; o'z neon ramkamiz ustida turadi.
-      // iPhone bug fix: facingMode'ni videoConstraints ichida { ideal } bilan beramiz.
-      // Bare "environment" iOS Safari'da qattiq talab bo'lib, getUserMedia'ni rad ettiradi.
-      videoConstraints: { facingMode: { ideal: "environment" } },
+      qrbox: computeQrbox,
+      videoConstraints: {
+        facingMode: { ideal: "environment" },
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+      },
       formatsToSupport: [
         Html5QrcodeSupportedFormats.EAN_13,
         Html5QrcodeSupportedFormats.EAN_8,

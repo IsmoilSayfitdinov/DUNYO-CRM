@@ -90,16 +90,35 @@ export function Scanner() {
     if (scanState !== "scanning") return;
 
     let cancelled = false;
-    // qrbox bermaymiz — kutubxona o'zining oq ramkasini chizmaydi, butun kadr skanerlanadi.
-    // O'z neon ramkamiz (ScanFrame) faqat vizual yo'riqnoma sifatida ustида turadi.
-    //
     // MUHIM (iPhone bug fix): facingMode'ni videoConstraints ICHIDA { ideal } bilan beramiz.
     // Bare "environment" iOS Safari'da QATTIQ talab sifatida tushuniladi va orqa kamerani
     // darrov aniqlay olmasa (ruxsat yangi so'ralganda) getUserMedia rad etadi → iPhone ishlamaydi.
     // { ideal } esa YUMSHOQ — orqa kamera bo'lmasa istalganini oladi, hech qachon rad etmaydi.
+    //
+    // MUHIM (iPhone QR DEKOD bug fix): qrbox + aspectRatio + ideal width/height qo'shamiz.
+    // Sabab: qrbox berilmasa, html5-qrcode skan hududini VIDEO ELEMENTNING o'lchamidan
+    // hisoblaydi. Biz video'ni CSS bilan full-screen cho'zganimiz uchun (object-fit:cover),
+    // iOS Safari'da ko'rinadigan o'lcham (ekran) haqiqiy kamera kadri (1280×720) bilan
+    // mos kelmaydi → kutubxona noto'g'ri/teskari (landscape↔portrait) hudud oladi →
+    // bo'sh kadrni dekod qiladi → QR HECH QACHON topilmaydi, lekin xato ham bermaydi
+    // (Android'da bu muammo yo'q). qrbox'ni ANIQ piksel bilan berib, bu bog'liqlikni uzamiz.
+    // qrbox'ning oq ramkasi pastdagi CSS (#qr-shaded-region display:none) bilan yashiringan,
+    // shuning uchun bizning neon ScanFrame dizaynimiz buzilmaydi.
+    const computeQrbox = (vw: number, vh: number) => {
+      const minEdge = Math.min(vw, vh);
+      const size = Math.floor(minEdge * 0.7); // ko'rinadigan kadrning 70% — markaziy skan hududi
+      return { width: size, height: size };
+    };
     const config = {
       fps: 10,
-      videoConstraints: { facingMode: { ideal: "environment" } },
+      qrbox: computeQrbox,
+      aspectRatio: 1.0, // kvadrat — iOS landscape/portrait chalkashligini oldini oladi
+      videoConstraints: {
+        facingMode: { ideal: "environment" },
+        // iOS'ga aniq rezolyutsiya beramiz — kamera kadri prognoz qilinadigan bo'ladi.
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+      },
     };
 
     const html5Qr = new Html5Qrcode(READER_ID, /* verbose= */ false);
