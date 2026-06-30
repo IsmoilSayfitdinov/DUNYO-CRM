@@ -7,9 +7,6 @@ export function UpdatePrompt() {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
   } = useRegisterSW({
-    onRegisteredSW(swUrl) {
-      console.log("[PWA] Service worker registered:", swUrl);
-    },
     onRegisterError(err) {
       console.error("[PWA] SW registration error:", err);
     },

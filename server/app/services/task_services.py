@@ -81,12 +81,12 @@ class TaskServices:
 
         return TaskInfo.model_validate(task)
 
-    async def list_team_tasks(self, user_id: UUID) -> list[TaskWithEmployee]:
-        """Rahbar: o'zi yaratgan barcha vazifalar (xodim ismi bilan)."""
+    async def list_team_tasks(self, user_id: UUID, limit: int, offset: int) -> list[TaskWithEmployee]:
+        """Rahbar: o'zi yaratgan vazifalar (xodim ismi bilan), sahifalangan."""
         leader = await self.leader_repo.get_by_user_id(user_id)
         if not leader:
             raise HTTPException(status.HTTP_403_FORBIDDEN, "Siz rahbar emasiz !")
-        items = await self.repo.list_for_leader(leader.id)
+        items = await self.repo.list_for_leader(leader.id, limit=limit, offset=offset)
         return [
             TaskWithEmployee(**TaskInfo.model_validate(t).model_dump(), employee_name=_employee_name(t.employee))
             for t in items
@@ -104,10 +104,10 @@ class TaskServices:
 
     # ---------- XODIM ----------
 
-    async def my_tasks(self, user_id: UUID) -> list[TaskInfo]:
-        """Xodim: o'ziga biriktirilgan vazifalar."""
+    async def my_tasks(self, user_id: UUID, limit: int, offset: int) -> list[TaskInfo]:
+        """Xodim: o'ziga biriktirilgan vazifalar (sahifalangan)."""
         employee = await get_current_employee(self.employee_repo, user_id)
-        items = await self.repo.list_for_employee(employee.id)
+        items = await self.repo.list_for_employee(employee.id, limit=limit, offset=offset)
         return [TaskInfo.model_validate(t) for t in items]
 
     async def update_status(self, user_id: UUID, task_id: UUID, new_status: TaskStatus) -> TaskInfo:

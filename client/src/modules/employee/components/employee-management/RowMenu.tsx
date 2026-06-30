@@ -1,7 +1,7 @@
 import { MoreVertical, Eye, Pencil, UserCheck, Trash2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/shared/ui/dropdown-menu";
 
-export function RowMenu({ onView, onEdit, onToggleActive, isActive, onDelete }: { onView: () => void; onEdit: () => void; onToggleActive: () => void; isActive: boolean; onDelete: () => void }) {
+export function RowMenu({ onView, onEdit, onToggleActive, isActive }: { onView: () => void; onEdit: () => void; onToggleActive: () => void; isActive: boolean }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -13,7 +13,7 @@ export function RowMenu({ onView, onEdit, onToggleActive, isActive, onDelete }: 
         <DropdownMenuItem onClick={onView} className="gap-3 cursor-pointer text-slate-700"><Eye size={14} /> Profilni ko'rish</DropdownMenuItem>
         <DropdownMenuItem onClick={onEdit} className="gap-3 cursor-pointer text-slate-700"><Pencil size={14} /> Tahrirlash</DropdownMenuItem>
         {isActive ? (
-          <DropdownMenuItem onClick={() => {onToggleActive(), onDelete()}} className="gap-3 cursor-pointer text-destructive focus:text-destructive"><Trash2 size={14} /> Faolsizlantirish</DropdownMenuItem>
+          <DropdownMenuItem onClick={onToggleActive} className="gap-3 cursor-pointer text-destructive focus:text-destructive"><Trash2 size={14} /> Faolsizlantirish</DropdownMenuItem>
         ) : (
           <DropdownMenuItem onClick={onToggleActive} className="gap-3 cursor-pointer text-success focus:text-success"><UserCheck size={14} /> Faollashtirish</DropdownMenuItem>
         )}

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Path, status
 
 from app.core.dependencies import get_current_user
 from app.model.user import User
@@ -10,7 +10,10 @@ router = APIRouter(prefix="/products", tags=["Products"])
 
 @router.get("/by-barcode/{barcode}", response_model=ProductInfo)
 async def get_product_by_barcode(
-    barcode: str,
+    # Barcode uzunligini cheklaymiz — tashqi YesPOS URL'iga uzatiladi, ulkan
+    # qiymat URL uzunligi cheklovini buzib yoki tashqi API'ni cho'ktirib (DoS)
+    # qo'yardi. EAN/UPC/QR uchun 64 belgi yetarli.
+    barcode: str = Path(min_length=1, max_length=64),
     user: User = Depends(get_current_user),
     service: YesPosService = Depends(),
 ):

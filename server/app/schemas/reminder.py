@@ -9,7 +9,7 @@ class ReminderCreate(BaseModel):
     """Rahbar xodimga eslatma/ogohlantirish yuboradi."""
     employee_id: UUID
     title: str = Field(min_length=1, max_length=200)
-    message: str | None = None
+    message: str | None = Field(default=None, max_length=2000)
     severity: Literal["info", "warning"] = "warning"
 
 

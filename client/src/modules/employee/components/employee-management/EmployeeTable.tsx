@@ -21,7 +21,6 @@ export function EmployeeTable({
   onView,
   onEdit,
   onToggleActive,
-  onDelete,
 }: any) {
   return (
     <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
@@ -83,7 +82,6 @@ export function EmployeeTable({
                       onView={() => onView(emp)}
                       onEdit={() => onEdit(emp)}
                       onToggleActive={() => onToggleActive(emp)}
-                      onDelete={() => onDelete(emp)}
                     />
                   </div>
                 </div>
@@ -189,7 +187,6 @@ export function EmployeeTable({
                       onView={() => onView(emp)}
                       onEdit={() => onEdit(emp)}
                       onToggleActive={() => onToggleActive(emp)}
-                      onDelete={() => onDelete(emp)}
                     />
                   </td>
                 </tr>

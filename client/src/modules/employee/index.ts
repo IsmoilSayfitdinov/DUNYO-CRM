@@ -8,6 +8,5 @@ export { EditProfileModal } from "./components/EditProfileModal";
 export { NfcEnrollModal } from "./components/NfcEnrollModal";
 export { useSaveEmployee } from "./hooks/use-save-employee";
 export { useUpdateMyProfile } from "./hooks/use-update-my-profile";
-export { useDeleteEmployee } from "./hooks/use-delete-employee";
 export { useSetEmployeeActive } from "./hooks/use-set-active";
 export { employees, managers, managerActivity, myEmployee } from "./constants/mock";

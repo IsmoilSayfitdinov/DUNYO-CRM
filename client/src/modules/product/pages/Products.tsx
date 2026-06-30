@@ -1,17 +1,14 @@
-import { useState, useEffect, useRef } from "react";
-import { ScanBarcode, X, RotateCcw } from "lucide-react";
-import { Html5Qrcode, Html5QrcodeSupportedFormats } from "html5-qrcode";
+import { useState } from "react";
+import { ScanBarcode, X } from "lucide-react";
+import { Scanner as BarcodeReader, type IDetectedBarcode, type IScannerError } from "@yudiel/react-qr-scanner";
 import { useProductByBarcode } from "@/modules/product";
 import { ProductSearch, BarcodeScanner, ScannerTips } from "../components/products";
-
-const READER_ID = "barcode-reader-region";
 
 export function Products() {
   // mode: kameraning holati; code: serverda qidirilayotgan barcode
   const [mode, setMode] = useState<"idle" | "scanning">("idle");
   const [code, setCode] = useState<string>("");
   const [manualQuery, setManualQuery] = useState("");
-  const qrRef = useRef<Html5Qrcode | null>(null);
 
   // Barcode bo'yicha real qidiruv (YesPOS backend proxy orqali)
   const { data: foundProduct, isFetching, isError } = useProductByBarcode(code);
@@ -24,85 +21,23 @@ export function Products() {
     : code && isError ? "notfound"
     : "idle";
 
-  // Kamerani xavfsiz to'xtatish (state'lar orasida ko'p marta chaqirilishi mumkin).
-  const stopCamera = async () => {
-    const inst = qrRef.current;
-    qrRef.current = null;
-    if (!inst) return;
-    try {
-      if (inst.isScanning) await inst.stop();
-      inst.clear();
-    } catch {
-      /* allaqachon to'xtagan bo'lishi mumkin — e'tiborsiz */
-    }
+  // Barcode aniqlanganda chaqiriladi (yudiel/react-qr-scanner).
+  // Faqat "scanning" paytida ishlov beramiz — keyingi (kechikkan) skanlarni e'tiborsiz qoldiramiz.
+  const handleScan = (codes: IDetectedBarcode[]) => {
+    if (mode !== "scanning") return;
+    const text = codes[0]?.rawValue;
+    if (!text) return;
+    // mode "idle"ga o'tadi → kamera bloki unmount bo'ladi va o'zi yopiladi.
+    setMode("idle");
+    setCode(text.trim());
   };
 
-  useEffect(() => {
-    if (mode !== "scanning") return;
-
-    let cancelled = false;
-    // iPhone bug fix: facingMode'ni videoConstraints ichida { ideal } bilan beramiz.
-    // Bare "environment" iOS Safari'da qattiq talab bo'lib, getUserMedia'ni rad ettiradi.
-    //
-    // iPhone DEKOD bug fix (Scanner.tsx bilan bir xil sabab): qrbox berilmasa,
-    // html5-qrcode skan hududini full-screen cho'zilgan video o'lchamidan hisoblaydi
-    // → iOS Safari'da kadr noto'g'ri olinadi → hech narsa o'qilmaydi (xato yo'q).
-    // FARQ: bu BARCODE (EAN/UPC) skaneri — barcode KENG va past, kvadrat emas.
-    // Shuning uchun qrbox'ni KENG to'rtburchak qilamiz (kenglik > balandlik) va
-    // aspectRatio BERMAYMIZ (kvadrat majburlasak barcode sig'may qolardi).
-    const computeQrbox = (vw: number, vh: number) => {
-      const w = Math.floor(Math.min(vw, vh) * 0.8); // keng — barcode uzunligini qamraydi
-      const h = Math.floor(w * 0.5);                 // past — barcode balandligi kichik
-      return { width: w, height: h };
-    };
-    const config = {
-      fps: 10,
-      qrbox: computeQrbox,
-      videoConstraints: {
-        facingMode: { ideal: "environment" },
-        width: { ideal: 1280 },
-        height: { ideal: 720 },
-      },
-      formatsToSupport: [
-        Html5QrcodeSupportedFormats.EAN_13,
-        Html5QrcodeSupportedFormats.EAN_8,
-        Html5QrcodeSupportedFormats.UPC_A,
-        Html5QrcodeSupportedFormats.UPC_E,
-        Html5QrcodeSupportedFormats.CODE_128,
-        Html5QrcodeSupportedFormats.CODE_39,
-        Html5QrcodeSupportedFormats.QR_CODE,
-      ],
-    };
-
-    const html5Qr = new Html5Qrcode(READER_ID, /* verbose= */ false);
-    qrRef.current = html5Qr;
-
-    html5Qr
-      .start(
-        // 1-argument majburiy, lekin config'dagi videoConstraints ustun keladi.
-        { facingMode: "environment" },
-        config,
-        async (decodedText) => {
-          if (cancelled) return;
-          // barcode aniqlandi — kamerani to'xtatib, qidiruvni ishga tushiramiz.
-          await stopCamera();
-          setMode("idle");
-          setCode(decodedText.trim());
-        },
-        () => {
-          // har kadrdagi "topilmadi" xatolarini e'tiborsiz qoldiramiz
-        },
-      )
-      .catch(() => {
-        // kamera ochilmadi — idle holatga qaytamiz
-        if (!cancelled) setMode("idle");
-      });
-
-    return () => {
-      cancelled = true;
-      stopCamera();
-    };
-  }, [mode]);
+  // Kamera xatosi (ruxsat yo'q / qurilma yo'q / xavfsiz kontekst emas).
+  const handleScanError = (err: IScannerError) => {
+    setMode("idle");
+    // eslint-disable-next-line no-console
+    console.warn("[barcode] kamera xatosi:", err.kind, err.message);
+  };
 
   const startScanning = () => {
     setCode("");
@@ -157,8 +92,23 @@ export function Products() {
       {/* ===== FULL-SCREEN KAMERA OVERLAY (faqat skanerlash paytida) ===== */}
       {mode === "scanning" && (
         <div className="fixed inset-0 z-[60] bg-slate-950 flex flex-col">
-          {/* Kamera video shu yerga chiziladi */}
-          <div id={READER_ID} className="absolute inset-0 w-full h-full" />
+          {/* Kamera — barcha barcode formatlarini o'qiydi. Aniqlangach mode "idle"ga
+              o'tadi → bu blok unmount bo'ladi → kamera o'zi yopiladi. */}
+          <div className="absolute inset-0 [&_video]:w-full [&_video]:h-full [&_video]:object-cover">
+            <BarcodeReader
+              onScan={handleScan}
+              onError={handleScanError}
+              formats={["qr_code", "ean_13", "ean_8", "upc_a", "upc_e", "code_128", "code_39"]}
+              constraints={{ facingMode: "environment" }}
+              components={{ finder: false }}
+              allowMultiple={false}
+              scanDelay={500}
+              styles={{
+                container: { width: "100%", height: "100%" },
+                video: { width: "100%", height: "100%", objectFit: "cover" },
+              }}
+            />
+          </div>
 
           {/* Yuqori panel */}
           <div className="relative z-20 flex items-center justify-between px-5"
@@ -173,7 +123,7 @@ export function Products() {
           </div>
 
           {/* Markaz: keng (barcode) neon ramka */}
-          <div className="relative z-10 flex-1 flex flex-col items-center justify-center">
+          <div className="relative z-10 flex-1 flex flex-col items-center justify-center pointer-events-none">
             <div className="relative w-72 h-40 max-w-[82%]">
               {[
                 "top-0 left-0 border-t-4 border-l-4 rounded-tl-xl",
@@ -206,25 +156,6 @@ export function Products() {
           0% { top: 4%; opacity: 0.2; }
           50% { top: 92%; opacity: 1; }
           100% { top: 4%; opacity: 0.2; }
-        }
-        /* === html5-qrcode'ni TO'LIQ EKRANGA majburlash === */
-        #${READER_ID} img, #${READER_ID} button, #${READER_ID} select, #${READER_ID} a { display: none !important; }
-        #${READER_ID} {
-          position: absolute !important;
-          inset: 0 !important;
-          width: 100% !important;
-          height: 100% !important;
-          border: none !important;
-          padding: 0 !important;
-        }
-        #${READER_ID} #qr-shaded-region { display: none !important; }
-        #${READER_ID} video {
-          border-radius: 0 !important;
-          width: 100% !important;
-          height: 100% !important;
-          object-fit: cover !important;
-          position: absolute !important;
-          inset: 0 !important;
         }
       `}</style>
     </div>

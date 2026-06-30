@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Camera, CheckCircle, XCircle, AlertTriangle, Scan, Clock, Loader2, RotateCcw, MapPin, X, Lightbulb } from "lucide-react";
-import { Html5Qrcode } from "html5-qrcode";
+import { Scanner as QrScanner, type IDetectedBarcode, type IScannerError } from "@yudiel/react-qr-scanner";
 import type { AxiosError } from "axios";
 import { useScan } from "@/modules/attendance";
 import { useGeolocation, type GeoCoords } from "@/shared/lib/useGeolocation";
@@ -9,7 +9,6 @@ import { GeoPermissionSheet } from "@/shared/ui/GeoPermissionSheet";
 type ScanState = "idle" | "scanning" | "locating" | "success" | "duplicate" | "error";
 
 const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
-const READER_ID = "qr-reader-region";
 
 /** QR matnidan filial UUID'sini ajratadi: JSON {branch_id} yoki bare UUID yoki URL ichidagi UUID */
 function parseBranchId(text: string): string | null {
@@ -30,7 +29,6 @@ function parseBranchId(text: string): string | null {
 export function Scanner() {
   const [scanState, setScanState] = useState<ScanState>("idle");
   const [result, setResult] = useState<{ status?: string; check_in?: string | null; check_out?: string | null } | null>(null);
-  const qrRef = useRef<Html5Qrcode | null>(null);
   const scan = useScan();
 
   // Geolokatsiya logikasi shu hook ichida (xato kodlari, holat, qayta urinish).
@@ -38,7 +36,7 @@ export function Scanner() {
   // Joylashuv ruxsati paneli ochiqmi?
   const [geoSheetOpen, setGeoSheetOpen] = useState(false);
   // Joylashuv olingach davom ettirish uchun, skanerlangan branch_id'ni saqlaymiz.
-  const pendingBranchId = useRef<string | null>(null);
+  const [pendingBranchId, setPendingBranchId] = useState<string | null>(null);
 
   // Olingan joylashuv bilan serverga skan yuborish (success/duplicate/error holatlarini boshqaradi).
   const submitScan = (branchId: string, pos: GeoCoords) => {
@@ -54,7 +52,7 @@ export function Scanner() {
 
   // Joylashuvni so'raydi; muvaffaqiyatda skan yuboradi, xatoda ruxsat panelini ochadi.
   const requestLocation = async (branchId: string) => {
-    pendingBranchId.current = branchId;
+    setPendingBranchId(branchId);
     setScanState("locating");
     try {
       const pos = await geo.request();
@@ -68,94 +66,33 @@ export function Scanner() {
 
   // Panel ichidagi "Ruxsat berish" / "Qayta urinish" tugmasi.
   const retryLocation = () => {
-    if (pendingBranchId.current) requestLocation(pendingBranchId.current);
+    if (pendingBranchId) requestLocation(pendingBranchId);
   };
 
-  // Kamerani xavfsiz to'xtatish (state'lar orasida ko'p marta chaqirilishi mumkin).
-  const stopCamera = async () => {
-    const inst = qrRef.current;
-    qrRef.current = null;
-    if (!inst) return;
-    try {
-      // isScanning bo'lsa avval stop(), keyin clear() — aks holda kutubxona warning beradi.
-      if (inst.isScanning) await inst.stop();
-      inst.clear();
-    } catch {
-      /* allaqachon to'xtagan bo'lishi mumkin — e'tiborsiz */
-    }
-  };
-
-  // scanState "scanning" bo'lganda kamerani ishga tushiramiz, aks holda to'xtatamiz.
-  useEffect(() => {
+  // QR aniqlanganda chaqiriladi (yudiel/react-qr-scanner).
+  // Faqat "scanning" holatida ishlov beramiz — keyingi (kechikkan) skanlarni e'tiborsiz qoldiramiz.
+  const handleScan = (codes: IDetectedBarcode[]) => {
     if (scanState !== "scanning") return;
+    const text = codes[0]?.rawValue;
+    if (!text) return;
 
-    let cancelled = false;
-    // MUHIM (iPhone bug fix): facingMode'ni videoConstraints ICHIDA { ideal } bilan beramiz.
-    // Bare "environment" iOS Safari'da QATTIQ talab sifatida tushuniladi va orqa kamerani
-    // darrov aniqlay olmasa (ruxsat yangi so'ralganda) getUserMedia rad etadi → iPhone ishlamaydi.
-    // { ideal } esa YUMSHOQ — orqa kamera bo'lmasa istalganini oladi, hech qachon rad etmaydi.
-    //
-    // MUHIM (iPhone QR DEKOD bug fix): qrbox + aspectRatio + ideal width/height qo'shamiz.
-    // Sabab: qrbox berilmasa, html5-qrcode skan hududini VIDEO ELEMENTNING o'lchamidan
-    // hisoblaydi. Biz video'ni CSS bilan full-screen cho'zganimiz uchun (object-fit:cover),
-    // iOS Safari'da ko'rinadigan o'lcham (ekran) haqiqiy kamera kadri (1280×720) bilan
-    // mos kelmaydi → kutubxona noto'g'ri/teskari (landscape↔portrait) hudud oladi →
-    // bo'sh kadrni dekod qiladi → QR HECH QACHON topilmaydi, lekin xato ham bermaydi
-    // (Android'da bu muammo yo'q). qrbox'ni ANIQ piksel bilan berib, bu bog'liqlikni uzamiz.
-    // qrbox'ning oq ramkasi pastdagi CSS (#qr-shaded-region display:none) bilan yashiringan,
-    // shuning uchun bizning neon ScanFrame dizaynimiz buzilmaydi.
-    const computeQrbox = (vw: number, vh: number) => {
-      const minEdge = Math.min(vw, vh);
-      const size = Math.floor(minEdge * 0.7); // ko'rinadigan kadrning 70% — markaziy skan hududi
-      return { width: size, height: size };
-    };
-    const config = {
-      fps: 10,
-      qrbox: computeQrbox,
-      aspectRatio: 1.0, // kvadrat — iOS landscape/portrait chalkashligini oldini oladi
-      videoConstraints: {
-        facingMode: { ideal: "environment" },
-        // iOS'ga aniq rezolyutsiya beramiz — kamera kadri prognoz qilinadigan bo'ladi.
-        width: { ideal: 1280 },
-        height: { ideal: 720 },
-      },
-    };
+    const branchId = parseBranchId(text);
+    if (!branchId) {
+      setScanState("error");
+      return;
+    }
+    // Bu yerda kamerani qo'lda to'xtatish SHART EMAS — scanState "locating"ga
+    // o'tgani uchun <QrScanner> unmount bo'ladi va kamera o'zi yopiladi.
+    requestLocation(branchId);
+  };
 
-    const html5Qr = new Html5Qrcode(READER_ID, /* verbose= */ false);
-    qrRef.current = html5Qr;
-
-    html5Qr
-      .start(
-        // 1-argument majburiy (kutubxona bo'sh bo'lsa xato beradi), lekin config'dagi
-        // videoConstraints ustun keladi — shuning uchun bu faqat formal qiymat.
-        { facingMode: "environment" },
-        config,
-        async (decodedText) => {
-          if (cancelled) return;
-          // QR aniqlandi — kamerani to'xtatamiz va davom etamiz.
-          await stopCamera();
-
-          const branchId = parseBranchId(decodedText);
-          if (!branchId) {
-            setScanState("error");
-            return;
-          }
-          requestLocation(branchId);
-        },
-        () => {
-          // har kadrdagi "topilmadi" xatolarini e'tiborsiz qoldiramiz
-        },
-      )
-      .catch(() => {
-        // kamera ochilmadi (ruxsat yo'q / qurilma yo'q) — xato holatiga o'tamiz
-        if (!cancelled) setScanState("error");
-      });
-
-    return () => {
-      cancelled = true;
-      stopCamera();
-    };
-  }, [scanState]);
+  // Kamera xatosi (ruxsat yo'q / qurilma yo'q / xavfsiz kontekst emas) — aniq xabar uchun kind'ga qaraymiz.
+  const handleScanError = (err: IScannerError) => {
+    // err.kind: permission-denied | no-camera | in-use | overconstrained | insecure-context | ...
+    setScanState("error");
+    // eslint-disable-next-line no-console
+    console.warn("[scanner] kamera xatosi:", err.kind, err.message);
+  };
 
   const startScanning = () => {
     setResult(null);
@@ -234,16 +171,31 @@ export function Scanner() {
       {/* ===== FULL-SCREEN OVERLAY ===== */}
       {/* Kamera va barcha holatlar shu qora overlay ichida ekranni to'liq egallaydi.
           z-[60]: layout'dagi MobileBottomNav/Drawer (z-50) ustida turishi uchun.
-          GeoPermissionSheet undan ham yuqorida (z-[70]) bo'lishi kerak — pastda override qilinadi. */}
+          GeoPermissionSheet undan ham yuqorida (z-[70]) bo'lishi kerak. */}
       {isFullscreen && (
         <div className="fixed inset-0 z-[60] bg-slate-950 flex flex-col">
-          {/* Kamera video shu yerga chiziladi (har doim mavjud bo'lishi kerak, shuning uchun yashirmaymiz) */}
-          <div
-            id={READER_ID}
-            className={`absolute inset-0 w-full h-full [&_video]:w-full [&_video]:h-full [&_video]:object-cover ${
-              scanState === "scanning" ? "opacity-100" : "opacity-0"
-            }`}
-          />
+          {/* Kamera — faqat skanerlash paytida mount qilinadi.
+              QR aniqlangach scanState "locating"ga o'tadi → bu blok unmount bo'ladi
+              → kamera o'zi yopiladi (eski stopCamera() race'i butunlay yo'qoladi). */}
+          {scanState === "scanning" && (
+            <div className="absolute inset-0 [&_video]:w-full [&_video]:h-full [&_video]:object-cover">
+              <QrScanner
+                onScan={handleScan}
+                onError={handleScanError}
+                formats={["qr_code"]}
+                constraints={{ facingMode: "environment" }}
+                // Kutubxonaning o'z overlay/ramkalarini o'chiramiz — bizning neon ScanFrame ishlatiladi.
+                components={{ finder: false }}
+                // Bir xil QR tez-tez qayta o'qilmasin (faqat birinchi marta kerak).
+                allowMultiple={false}
+                scanDelay={500}
+                styles={{
+                  container: { width: "100%", height: "100%" },
+                  video: { width: "100%", height: "100%", objectFit: "cover" },
+                }}
+              />
+            </div>
+          )}
 
           {/* Yuqori panel: yopish tugmasi */}
           <div className="relative z-20 flex items-center justify-between px-5 pt-5"
@@ -259,7 +211,7 @@ export function Scanner() {
 
           {/* Markaz: skan ramkasi (faqat skanerlash paytida) */}
           {scanState === "scanning" && (
-            <div className="relative z-10 flex-1 flex flex-col items-center justify-center">
+            <div className="relative z-10 flex-1 flex flex-col items-center justify-center pointer-events-none">
               <ScanFrame />
               <p className="mt-8 text-white/80 text-sm font-medium px-8 text-center">
                 QR kodni ramka ichiga joylashtiring
@@ -267,8 +219,7 @@ export function Scanner() {
             </div>
           )}
 
-          {/* Holat ekranlari — absolute markazda (yuqori/pastki panellardan qat'i nazar
-              har doim ekran o'rtasida turadi). inset-0 + flex-center = mukammal markaz. */}
+          {/* Holat ekranlari — absolute markazda. */}
           {scanState !== "scanning" && (
             <div className="absolute inset-0 z-10 flex items-center justify-center px-6">
               {scanState === "locating" && !geoSheetOpen && (
@@ -372,30 +323,6 @@ export function Scanner() {
         @keyframes pop {
           0% { transform: scale(0.85); opacity: 0; }
           100% { transform: scale(1); opacity: 1; }
-        }
-        /* === html5-qrcode'ni TO'LIQ EKRANGA majburlash === */
-        /* Kutubxona standart UI'sini (tugma, rasm, oq qrbox ramka) yashiramiz — o'z dizaynimiz ishlatiladi */
-        #${READER_ID} img, #${READER_ID} button, #${READER_ID} select, #${READER_ID} a { display: none !important; }
-        /* MUHIM: kutubxona root div'ga inline height (masalan 384px) o'rnatadi.
-           Uni absolute + inset-0 bilan butun overlay'ga majburan cho'zamiz. */
-        #${READER_ID} {
-          position: absolute !important;
-          inset: 0 !important;
-          width: 100% !important;
-          height: 100% !important;
-          border: none !important;
-          padding: 0 !important;
-        }
-        /* qrbox sun'iy ramkasini (oq chiziqlar) butunlay o'chiramiz */
-        #${READER_ID} #qr-shaded-region { display: none !important; }
-        /* Video — butun ekranni qoplaydi (cover), kesilsa kesilsin, lekin bo'sh joy qolmasin */
-        #${READER_ID} video {
-          border-radius: 0 !important;
-          width: 100% !important;
-          height: 100% !important;
-          object-fit: cover !important;
-          position: absolute !important;
-          inset: 0 !important;
         }
       `}</style>
     </div>

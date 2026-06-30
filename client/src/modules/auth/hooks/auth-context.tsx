@@ -54,7 +54,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
    const logout = async () => {
-      console.log("🔴 LOGOUT BOSILDI");  
       try {
           await sessionApi.logout();
       } catch {

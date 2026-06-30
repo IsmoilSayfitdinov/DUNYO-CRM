@@ -27,16 +27,18 @@ class LeaveRequestRepository:
         )
         return await self.database.scalar(query)
 
-    async def get_by_employee(self, employee_id: UUID) -> list[LeaveRequest]:
+    async def get_by_employee(self, employee_id: UUID, limit: int, offset: int) -> list[LeaveRequest]:
         query = (
             select(LeaveRequest)
             .where(LeaveRequest.employee_id == employee_id)
             .order_by(LeaveRequest.created_at.desc())
+            .limit(limit)
+            .offset(offset)
         )
         result = await self.database.scalars(query)
         return list(result)
 
-    async def get_for_leader(self, leader_id: UUID, status: LeaveRequestStatus | None = None) -> list[LeaveRequest]:
+    async def get_for_leader(self, leader_id: UUID, limit: int, offset: int, status: LeaveRequestStatus | None = None) -> list[LeaveRequest]:
         query = (
             select(LeaveRequest)
             .options(selectinload(LeaveRequest.employee).selectinload(Employee.user))
@@ -47,6 +49,7 @@ class LeaveRequestRepository:
         )
         if status is not None:
             query = query.where(LeaveRequest.status == status)
+        query = query.limit(limit).offset(offset)
         result = await self.database.scalars(query)
         return list(result)
 

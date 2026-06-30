@@ -2,9 +2,8 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { Plus, Users, Award, AlertTriangle, TrendingDown } from "lucide-react";
 import { useEmployees, type Employee } from "@/modules/employee";
-import { AddEditEmployeeModal, useSaveEmployee, useDeleteEmployee, useSetEmployeeActive } from "@/modules/employee";
+import { AddEditEmployeeModal, useSaveEmployee, useSetEmployeeActive } from "@/modules/employee";
 import { useBranches } from "@/modules/branch";
-import { ConfirmActionModal } from "@/shared/ui/ConfirmActionModal";
 import { StatsCards, FiltersBar, EmployeeTable } from "../components/employee-management";
 
 const PAGE_SIZE = 8;
@@ -54,10 +53,8 @@ export function EmployeeManagement() {
   const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Employee | null>(null);
-  const [deactivateTarget, setDeactivateTarget] = useState<ReturnType<typeof toRow> | null>(null);
 
   const saveEmployee = useSaveEmployee(editTarget?.id);
-  const deleteEmployee = useDeleteEmployee();
   const setActive = useSetEmployeeActive();
 
   const handleSave = (values: any) => {
@@ -126,7 +123,6 @@ export function EmployeeManagement() {
         onView={(emp: any) => navigate(`/leader/employees/${emp.id}`)}
         onEdit={(emp: any) => { setEditTarget(emp.raw); setModalOpen(true); }}
         onToggleActive={(emp: any) => setActive.mutate({ id: emp.id, isActive: !emp.isActive })}
-        onDelete={(emp: any) => setDeactivateTarget(emp)}
       />
 
       <AddEditEmployeeModal
@@ -135,20 +131,6 @@ export function EmployeeManagement() {
         onClose={() => { setModalOpen(false); setEditTarget(null); }}
         onSave={handleSave}
         isSaving={saveEmployee.isPending}
-      />
-
-      <ConfirmActionModal
-        open={Boolean(deactivateTarget)}
-        variant="danger"
-        title={`${deactivateTarget?.name}ni o'chirish?`}
-        description={`Bu amal ${deactivateTarget?.name}ni serverdan o'chiradi.`}
-        confirmLabel="Ha, o'chirish"
-        busy={deleteEmployee.isPending}
-        onConfirm={() => {
-          if (!deactivateTarget) return;
-          deleteEmployee.mutate(deactivateTarget.id, { onSuccess: () => setDeactivateTarget(null) });
-        }}
-        onClose={() => setDeactivateTarget(null)}
       />
     </div>
   );

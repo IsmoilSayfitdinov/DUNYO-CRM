@@ -87,18 +87,18 @@ class LeaveRequestService:
             )
         return self._to_info(created)
 
-    async def get_my(self, user_id: UUID) -> list[LeaveRequestInfo]:
+    async def get_my(self, user_id: UUID, limit: int, offset: int) -> list[LeaveRequestInfo]:
         employee = await get_current_employee(self.employee_repo, user_id)
-        leaves = await self.repo.get_by_employee(employee.id)
+        leaves = await self.repo.get_by_employee(employee.id, limit=limit, offset=offset)
         return [self._to_info(l) for l in leaves]
 
     # ---------- Rahbar ----------
 
-    async def get_for_leader(self, user_id: UUID, status_filter: LeaveRequestStatus | None = None) -> list[LeaveRequestInfo]:
+    async def get_for_leader(self, user_id: UUID, limit: int, offset: int, status_filter: LeaveRequestStatus | None = None) -> list[LeaveRequestInfo]:
         leader = await self.leader_repo.get_by_user_id(user_id)
         if not leader:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Siz rahbar emasiz !")
-        leaves = await self.repo.get_for_leader(leader.id, status_filter)
+        leaves = await self.repo.get_for_leader(leader.id, limit=limit, offset=offset, status=status_filter)
         return [self._to_info(l, with_name=True) for l in leaves]
 
     async def _load_owned(self, user_id: UUID, leave_id: UUID) -> LeaveRequest:

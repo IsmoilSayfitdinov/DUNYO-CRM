@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 
 from app.core.dependencies import get_current_user, require_role
 from app.enum.role import Role
@@ -28,10 +28,12 @@ async def create_task(
             dependencies=[Depends(require_role(Role.leader))])
 async def list_team_tasks(
     user: User = Depends(get_current_user),
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
     service: TaskServices = Depends(),
 ):
-    """Rahbar: o'zi yaratgan barcha vazifalar."""
-    return await service.list_team_tasks(user_id=user.id)
+    """Rahbar: o'zi yaratgan vazifalar (sahifalangan)."""
+    return await service.list_team_tasks(user_id=user.id, limit=limit, offset=offset)
 
 
 @router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT,
@@ -51,10 +53,12 @@ async def delete_task(
             dependencies=[Depends(require_role(Role.employee))])
 async def my_tasks(
     user: User = Depends(get_current_user),
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
     service: TaskServices = Depends(),
 ):
-    """Xodim: o'ziga biriktirilgan vazifalar."""
-    return await service.my_tasks(user_id=user.id)
+    """Xodim: o'ziga biriktirilgan vazifalar (sahifalangan)."""
+    return await service.my_tasks(user_id=user.id, limit=limit, offset=offset)
 
 
 @router.patch("/{task_id}/status", response_model=TaskInfo,

@@ -26,9 +26,11 @@ async def create_leave_request(
 @router.get("/me", response_model=list[LeaveRequestInfo], dependencies=[Depends(require_role(Role.employee))])
 async def my_leave_requests(
     user: User = Depends(get_current_user),
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
     service: LeaveRequestService = Depends(),
 ):
-    return await service.get_my(user_id=user.id)
+    return await service.get_my(user_id=user.id, limit=limit, offset=offset)
 
 
 # ---------- Rahbar ----------
@@ -37,9 +39,11 @@ async def my_leave_requests(
 async def team_leave_requests(
     user: User = Depends(get_current_user),
     status_filter: LeaveRequestStatus | None = Query(None, alias="status"),
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
     service: LeaveRequestService = Depends(),
 ):
-    return await service.get_for_leader(user_id=user.id, status_filter=status_filter)
+    return await service.get_for_leader(user_id=user.id, limit=limit, offset=offset, status_filter=status_filter)
 
 
 @router.patch("/{leave_id}/approve", response_model=LeaveRequestInfo, dependencies=[Depends(require_role(Role.leader))])

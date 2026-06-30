@@ -29,9 +29,15 @@ class EmployeeRepository:
         return await self.database.scalar(query)
 
     async def get_by_nfc_uid(self, nfc_uid: str) -> Employee | None:
+        # Soft-delete qilingan (ishdan bo'shatilgan) xodimning kartasi ishlamasligi
+        # uchun deleted_at filtri SHART — aks holda o'chirilgan xodim NFC bilan
+        # davomat soxtalashtira olardi. selectinload(user) — keyin xodim ismi/holatini
+        # qo'shimcha so'rovsiz olamiz (N+1 oldini olish).
         query = (
             select(Employee)
+            .options(selectinload(Employee.user))
             .where(Employee.nfc_uid == nfc_uid)
+            .where(Employee.deleted_at.is_(None))
         )
         return await self.database.scalar(query)
 
