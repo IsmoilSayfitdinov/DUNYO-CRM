@@ -42,11 +42,10 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      // 'autoUpdate' — yangi versiya chiqqanда foydalanuvchidan SO'RAMAYMIZ.
+      // 'autoUpdate' — yangi versiya chiqqanda foydalanuvchidan SO'RAMAYMIZ.
       // Yangi Service Worker o'zi yuklanadi, clientsClaim:true bilan darhol
       // boshqaruvni oladi va keyingi ochilishda yangi versiya ko'rinadi.
-      // Xodimlar "Yangilash" tugmasini bosishi shart emas — eski versiyada
-      // qolib ketmaydi. (Banner UpdatePrompt endi kerak emas — App.tsx'dan olindi.)
+      // Xodimlar "Yangilash" tugmasini bosishi shart emas — eski versiyada qolmaydi.
       registerType: 'autoUpdate',
       // 'script' — registerSW.js'ni index.html'ga MAJBURIY joylaydi (virtual modul
       // ishlatilsa ham). SW sahifa ochilishi bilan ro'yxatdan o'tadi -> install/push ishlaydi.

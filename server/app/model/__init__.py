@@ -13,5 +13,6 @@ from app.model.notification import Notification
 from app.model.push_subscription import PushSubscription
 from app.model.salary_adjustment import SalaryAdjustment
 from app.model.reminder import Reminder
+from app.model.app_meta import AppMeta
 
-__all__ = ["Base", "User", "Leader", "Employee", "Attendance", "SalaryHistory", "Branch", "LeaveRequest", "Task", "UserSettings", "Session", "Notification", "PushSubscription", "SalaryAdjustment", "Reminder"]
+__all__ = ["Base", "User", "Leader", "Employee", "Attendance", "SalaryHistory", "Branch", "LeaveRequest", "Task", "UserSettings", "Session", "Notification", "PushSubscription", "SalaryAdjustment", "Reminder", "AppMeta"]

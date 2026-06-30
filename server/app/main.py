@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 
 from app.core.attendance_scheduler import attendance_daily_loop, attendance_shift_end_loop
 from app.core.config import setting
+from app.core.update_broadcast import broadcast_update_if_new
 from app.routes.auth_router import router as auth_router
 from app.routes.employee_router import router as employee_router
 from app.routes.attendance_router import router as attendance_router
@@ -36,6 +37,16 @@ async def lifespan(app: FastAPI):
         asyncio.create_task(attendance_daily_loop()),
         asyncio.create_task(attendance_shift_end_loop()),
     ]
+    # Deploy bo'lganda (APP_VERSION o'zgargan) barcha xodimga "Yangilanish keldi" push.
+    # Push yuborish boshqaruvni bloklamasligi uchun fon-vazifa sifatida ishga tushiramiz;
+    # xatosi server startup'ini to'xtatmasligi kerak.
+    async def _safe_update_broadcast() -> None:
+        try:
+            await broadcast_update_if_new()
+        except Exception:  # noqa: BLE001
+            logger.exception("Update broadcast push xatosi (e'tiborsiz qoldirildi)")
+
+    tasks.append(asyncio.create_task(_safe_update_broadcast()))
     try:
         yield
     finally:

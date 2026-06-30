@@ -2,6 +2,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Setting(BaseSettings):
     app_name: str = "Hodim boshqaruv API"
+    # Ilova versiyasi. HAR DEPLOY OLDIDAN QO'LDA OSHIRING (masalan "1.0.6").
+    # Server ishga tushganda bu raqam bazadagi oxirgi yuborilgan versiyadan farq qilsa,
+    # barcha aktiv xodimga "Yangilanish keldi" push yuboriladi (bir marta).
+    APP_VERSION: str = "1.0.1"
     # XAVFSIZLIK: debug ishlab chiqarishda (production) o'chiq bo'lishi SHART —
     # aks holda stack-trace va DB connection string mijozga sizib chiqadi.
     # Faqat .env da DEBUG=true qo'yilganda yoqiladi.
